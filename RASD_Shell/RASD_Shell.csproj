@@ -55,8 +55,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="..\Assets\rasd-logo.png">
-      <Link>rasd-logo.png</Link>
+    <Resource Include="..\Assets\rasd-logo-small.png">
+      <Link>rasd-logo-small.png</Link>
     </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

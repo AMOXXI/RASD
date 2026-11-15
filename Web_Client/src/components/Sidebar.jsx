@@ -35,7 +35,7 @@ export default function Sidebar() {
           <div style={{ width:32, height:32, borderRadius:9, display:'grid', placeItems:'center', fontWeight:800,
             color:'var(--on-accent)', background:'linear-gradient(135deg,var(--accent),var(--accent-2))',
             boxShadow:'0 0 16px color-mix(in srgb,var(--accent) 45%,transparent)' }}>
-            <img src="/rasd-logo-192.png" alt="" style={{ width:'100%', height:'100%', borderRadius:'inherit', display:'block' }} />
+            <img src="/rasd-logo-small.png" alt="" style={{ width:'100%', height:'100%', borderRadius:'inherit', display:'block' }} />
           </div>
           <div>
             <div style={{ fontSize:16, fontWeight:700, color:'var(--c-text)', letterSpacing:'0.05em' }}>RASD</div>

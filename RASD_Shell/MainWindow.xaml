@@ -98,7 +98,7 @@
                         <Border Width="20" Height="20" CornerRadius="6" Margin="0,0,9,0"
                                 RenderOptions.BitmapScalingMode="HighQuality">
                             <Border.Background>
-                                <ImageBrush ImageSource="pack://application:,,,/rasd-logo.png" Stretch="UniformToFill"/>
+                                <ImageBrush ImageSource="pack://application:,,,/rasd-logo-small.png" Stretch="UniformToFill"/>
                             </Border.Background>
                         </Border>
                         <TextBlock Text="RASD" FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="13"
