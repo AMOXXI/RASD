@@ -195,3 +195,36 @@ produce a matching installer.
   matters if the admin laptop also runs the client service.
 - See `PROJECT_MAP.md` for the full analysis (unauthenticated `/api/command/*` routes, shared secrets in the
   payload, etc.).
+
+---
+
+# Credits removal and dashboard redesign (2026-11-16)
+
+Tag **`pre-redesign`** (`017ab21`) marks the state before these changes.
+
+| Commit | Item |
+|---|---|
+| `e2fef0f` | task1 — remove author credits |
+| `4727bb4` | task2 — Liquid Glass dashboard redesign (presentation only) |
+
+**task1.** Removed the "Developer" row from the dashboard Settings → About section, the "Published by" line from the
+uninstaller banner, and the Apps & Features support URL. The Apps & Features **Publisher** is now `RASD`, and
+`RASD_Launcher` AssemblyInfo Company/Copyright are `RASD` / `Copyright 2026 RASD`. README's Author row was removed.
+(An existing install keeps the old Publisher value in Apps & Features until it is reinstalled.)
+
+**task2.** `Web_Client` only; routes, API calls, socket code and data logic are unchanged.
+- One token set in `src/index.css` (type, radii, spacing, three blur levels, elevation, motion) for dark and light.
+- System font stack; the Google Fonts links were removed from `index.css` and `index.html` (works offline).
+- New `src/components/PageHeader.jsx`: one large title per page that collapses into a compact title in the
+  floating glass nav bar on scroll (`Layout.jsx`). The separate header title is gone.
+- The nav bar's fill and blur fade in over the first 80 px of scroll; cards ease in on enter (transform + opacity,
+  IntersectionObserver). Everything is disabled under "reduce motion".
+- Floating glass sidebar with a clear active state and 18 px icons; glass login card; glass landing nav and hero.
+- Emoji replaced with lucide icons; glows, the gradient text and the decorative landing blobs removed.
+- At most three blur layers on screen (sidebar, nav bar, and a modal when one is open); cards are not blurred.
+
+**Build.** `RASD_Launcher`, `RASD_Uninstaller`, the payload and `RASD_Setup` were rebuilt with 0 errors and 0
+warnings. New installer: `..\RASD_Setup.exe`; the previous one is `..\RASD_Setup_prev.exe`.
+
+**Rollback.** `git checkout pre-redesign` (or `git revert 4727bb4` / `git revert e2fef0f` for one item), then rebuild;
+or restore `..\RASD_Setup_prev.exe` as `..\RASD_Setup.exe`.
