@@ -31,6 +31,12 @@ namespace RASD_Connector
         private const int    SOCKET_IO_TIMEOUT_MS = 30000; // stream read/write timeout
         private const string LOG_FILE        = @"C:\ProgramData\RASD\connector.log";
 
+        // Execute-once record: a cmdId is never run twice (live via the relay
+        // AND from pending_commands, or again after the machine reboots).
+        private const string EXECUTED_FILE   = @"C:\ProgramData\RASD\executed_cmds.txt";
+        private const int    EXECUTED_MAX    = 200;
+        private const int    PRE_SHUTDOWN_ACK_TIMEOUT_MS = 5000;
+
         // Phase 2 — LAN auto-discovery (wire tags/format live in DiscoverySecurity)
         private const int    PROBE_WAIT_MS   = 2500;   // wait for an admin reply
         private const int    REDISCOVER_AFTER_FAILURES = 2;  // consecutive fails -> re-discover
@@ -65,6 +71,12 @@ namespace RASD_Connector
         private static DateTime _lastPongUtc  = DateTime.UtcNow;  // keep-alive tracking
         private static readonly object _logLock = new object();
 
+        // Execute-once record state (guarded by _execLock)
+        private static readonly object          _execLock    = new object();
+        private static readonly List<string>    _executedIds = new List<string>();
+        private static readonly HashSet<string> _executedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static bool                     _executedLoaded = false;
+
         // Discovery: UDP listener thread updates this
         private static string _discoveredIp = null;
 
@@ -79,6 +91,9 @@ namespace RASD_Connector
 
             _cts = new CancellationTokenSource();
             Log("[NET] ===== RASD Connector network client starting =====");
+
+            // Load the execute-once record before any command can arrive.
+            lock (_execLock) { LoadExecutedCommandsLocked(); }
 
             // Wired-LAN-only policy: log the full adapter inventory up front so a
             // refusal to connect can always be traced to a specific adapter.
@@ -950,8 +965,7 @@ namespace RASD_Connector
                 Log(string.Format("[NET] COMMAND received: {0}{1}", commandType,
                     string.IsNullOrEmpty(cmdId) ? "" : " (cmdId " + cmdId + ")"));
 
-                SystemController.ExecuteCommand(commandType);
-                _ = AcknowledgeCommand(cmdId, commandType);
+                HandleCommand(commandType, cmdId);
             }
         }
 
@@ -985,6 +999,134 @@ namespace RASD_Connector
             catch (Exception ex)
             {
                 Log(string.Format("[NET] ACK failed for cmdId {0}: {1}", cmdId, ex.Message));
+            }
+        }
+
+        // ====================================================================
+        // EXECUTE-ONCE GUARD — shared by the live (relay) and queued paths
+        // ====================================================================
+        private static void HandleCommand(string commandType, string cmdId)
+        {
+            // No cmdId: original behaviour, unchanged.
+            if (string.IsNullOrEmpty(cmdId))
+            {
+                SystemController.ExecuteCommand(commandType);
+                _ = AcknowledgeCommand(cmdId, commandType);
+                return;
+            }
+
+            // Already executed (live + queued delivery, or re-delivery after a
+            // reboot): do not run it again, but ACK so the server stops sending it.
+            if (!TryRecordCommand(cmdId))
+            {
+                Log(string.Format("[NET] Command {0} (cmdId {1}) already executed — duplicate, skipped.",
+                    commandType, cmdId));
+                _ = AcknowledgeCommand(cmdId, commandType);
+                return;
+            }
+
+            // Restart/shutdown: the machine may go down before an async ACK lands,
+            // so ACK first and wait for it (bounded) before powering off.
+            if (IsPowerCommand(commandType))
+            {
+                bool finished = false;
+                try
+                {
+                    // Task.Run: AcknowledgeCommand blocks synchronously inside the
+                    // HTTP call, so the timeout must wrap the whole call.
+                    finished = Task.Run(() => AcknowledgeCommand(cmdId, commandType))
+                                   .Wait(PRE_SHUTDOWN_ACK_TIMEOUT_MS);
+                }
+                catch (Exception ex)
+                {
+                    Log("[NET] Pre-shutdown ACK error: " + ex.Message);
+                }
+                Log(string.Format("[NET] {0} (cmdId {1}): ACK step {2} — executing now.",
+                    commandType, cmdId, finished ? "finished" : "timed out after 5s"));
+
+                SystemController.ExecuteCommand(commandType);
+                return;
+            }
+
+            SystemController.ExecuteCommand(commandType);
+            _ = AcknowledgeCommand(cmdId, commandType);
+        }
+
+        private static bool IsPowerCommand(string command)
+        {
+            switch (command)
+            {
+                case "RESTART":
+                case "RESTART_NODE":
+                case "SHUTDOWN":
+                case "SHUTDOWN_NODE":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Adds cmdId to the record and flushes it to disk. Returns false if the
+        /// cmdId was already recorded (i.e. the command was already executed).
+        /// </summary>
+        private static bool TryRecordCommand(string cmdId)
+        {
+            lock (_execLock)
+            {
+                if (!_executedLoaded) LoadExecutedCommandsLocked();
+                if (_executedSet.Contains(cmdId)) return false;
+
+                _executedIds.Add(cmdId);
+                _executedSet.Add(cmdId);
+                while (_executedIds.Count > EXECUTED_MAX)
+                {
+                    _executedSet.Remove(_executedIds[0]);
+                    _executedIds.RemoveAt(0);
+                }
+
+                // Persist BEFORE the caller executes the command.
+                try
+                {
+                    string dir = Path.GetDirectoryName(EXECUTED_FILE);
+                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                    File.WriteAllLines(EXECUTED_FILE, _executedIds.ToArray(), new UTF8Encoding(false));
+                }
+                catch (Exception ex)
+                {
+                    Log("[NET] WARNING: could not save " + EXECUTED_FILE + ": " + ex.Message);
+                }
+                return true;
+            }
+        }
+
+        /// <summary>Loads the persisted record (last EXECUTED_MAX ids). Caller holds _execLock.</summary>
+        private static void LoadExecutedCommandsLocked()
+        {
+            _executedLoaded = true;
+            _executedIds.Clear();
+            _executedSet.Clear();
+            try
+            {
+                if (!File.Exists(EXECUTED_FILE)) return;
+                foreach (string raw in File.ReadAllLines(EXECUTED_FILE))
+                {
+                    string id = raw.Trim();
+                    if (id.Length == 0 || _executedSet.Contains(id)) continue;
+                    _executedIds.Add(id);
+                    _executedSet.Add(id);
+                }
+                while (_executedIds.Count > EXECUTED_MAX)
+                {
+                    _executedSet.Remove(_executedIds[0]);
+                    _executedIds.RemoveAt(0);
+                }
+                Log(string.Format("[NET] Loaded {0} executed command id(s) from {1}.",
+                    _executedIds.Count, EXECUTED_FILE));
+            }
+            catch (Exception ex)
+            {
+                Log("[NET] WARNING: could not read " + EXECUTED_FILE + ": " + ex.Message);
             }
         }
 
@@ -1025,8 +1167,7 @@ namespace RASD_Connector
                             if (string.IsNullOrEmpty(cmd)) continue;
 
                             Log(string.Format("[NET] QUEUED command delivered: {0} (cmdId {1})", cmd, id));
-                            SystemController.ExecuteCommand(cmd);
-                            _ = AcknowledgeCommand(id, cmd);
+                            HandleCommand(cmd, id);
                         }
                     }
                 }

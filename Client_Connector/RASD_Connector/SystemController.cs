@@ -48,7 +48,7 @@ namespace RASD_Connector
 
         private static void ForceRestart()
         {
-            var psi = new ProcessStartInfo("shutdown", "/r /f /t 0")
+            var psi = new ProcessStartInfo("shutdown", "/r /f /t 5")
             {
                 CreateNoWindow = true,
                 UseShellExecute = false
@@ -58,7 +58,7 @@ namespace RASD_Connector
 
         private static void ForceShutdown()
         {
-            var psi = new ProcessStartInfo("shutdown", "/s /f /t 0")
+            var psi = new ProcessStartInfo("shutdown", "/s /f /t 5")
             {
                 CreateNoWindow = true,
                 UseShellExecute = false
