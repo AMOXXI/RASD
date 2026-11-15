@@ -1,0 +1,154 @@
+<Window x:Class="RASD_Shell.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="RASD Operations" Height="860" Width="1360"
+        WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResize"
+        Background="#03120F" MinWidth="1024" MinHeight="640">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="0" GlassFrameThickness="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <Style x:Key="ChromeBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#9DBDB4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#173F39"/>
+                                <Setter Property="Foreground" Value="#EEF6F2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CloseBtn" TargetType="Button" BasedOn="{StaticResource ChromeBtn}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#F35B6B"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="AccentBtn" TargetType="Button">
+            <Setter Property="Background" Value="#F2C070"/>
+            <Setter Property="Foreground" Value="#1A1206"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="999"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="GhostBtn" TargetType="Button" BasedOn="{StaticResource AccentBtn}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#9DBDB4"/>
+        </Style>
+    </Window.Resources>
+
+    <Border BorderBrush="#173F39" BorderThickness="1" Background="#03120F">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom title bar (Obsidian Teal / Solar) -->
+            <Border Grid.Row="0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#061A16" Offset="0"/>
+                        <GradientStop Color="#0A241F" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="14,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="20" Height="20" CornerRadius="6" Margin="0,0,9,0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#F2C070" Offset="0"/>
+                                    <GradientStop Color="#FFD98A" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <TextBlock Text="R" FontWeight="Bold" FontSize="12" Foreground="#1A1206"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="RASD" FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="13"
+                                   Foreground="#EEF6F2" VerticalAlignment="Center"/>
+                        <TextBlock Text="SECURE OPS" FontFamily="Consolas" FontSize="9" Foreground="#6C8B83"
+                                   VerticalAlignment="Center" Margin="10,2,0,0"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="1" x:Name="TxtUrl" Text="localhost:3000" FontFamily="Consolas"
+                               FontSize="10" Foreground="#6C8B83" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Browser" Width="Auto" Height="26" Padding="10,0" Click="Browser_Click"
+                                ToolTip="Open the dashboard in your web browser" Style="{StaticResource ChromeBtn}"/>
+                        <Button Content="⟳" Width="34" Height="26" Click="Reload_Click" ToolTip="Reload"
+                                Style="{StaticResource ChromeBtn}"/>
+                        <Button Content="—" Width="34" Height="26" Click="Min_Click" ToolTip="Minimize"
+                                Style="{StaticResource ChromeBtn}"/>
+                        <Button x:Name="BtnMax" Content="▢" Width="34" Height="26" Click="Max_Click" ToolTip="Maximize"
+                                Style="{StaticResource ChromeBtn}"/>
+                        <Button Content="✕" Width="34" Height="26" Click="Close_Click" ToolTip="Close"
+                                Style="{StaticResource CloseBtn}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- WebView2 host -->
+            <Grid Grid.Row="1">
+                <wv2:WebView2 x:Name="Web"/>
+
+                <!-- Runtime-missing / error overlay (never a blank window) -->
+                <Border x:Name="Overlay" Background="#03120F" Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="460">
+                        <TextBlock x:Name="OverlayTitle" Text="WebView2 runtime required"
+                                   FontFamily="Segoe UI" FontSize="20" FontWeight="SemiBold" Foreground="#EEF6F2"
+                                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock x:Name="OverlayBody" TextWrapping="Wrap" TextAlignment="Center"
+                                   FontFamily="Segoe UI" FontSize="13" Foreground="#9DBDB4" Margin="0,0,0,22"
+                                   Text="The Microsoft Edge WebView2 runtime is needed to display the dashboard. Install it, then reopen RASD Operations."/>
+                        <Button x:Name="BtnFix" Content="Install WebView2 runtime" Click="Fix_Click"
+                                Style="{StaticResource AccentBtn}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <Button Content="Open in browser instead" Click="OpenBrowser_Click"
+                                Style="{StaticResource GhostBtn}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

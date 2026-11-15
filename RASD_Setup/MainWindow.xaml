@@ -1,0 +1,241 @@
+<Window x:Class="RASD_Setup.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RASD Enterprise Setup"
+        Width="700" Height="420"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize">
+
+    <Window.Resources>
+        <!-- Flat rounded button (color set per role in code-behind) -->
+        <Style x:Key="ContinueBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#1A6FC4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="6"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.90"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- =========================================================
+             CHROME BACKING — hosts install / admin-IP / success views
+             (revealed when the login overlay is collapsed)
+             ========================================================= -->
+        <Border CornerRadius="10"
+                Background="{StaticResource BrushSurface}"
+                BorderBrush="{StaticResource BrushBorder}" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title bar (drag + close) -->
+                <Border Grid.Row="0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"
+                        Background="Transparent">
+                    <Grid Margin="16,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="RASD ENTERPRISE SETUP" FontFamily="Consolas" FontSize="12"
+                                   FontWeight="SemiBold" Foreground="{StaticResource BrushGhost}"
+                                   VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="✕" Width="30" Height="24" FontFamily="Consolas"
+                                Background="Transparent" BorderThickness="0"
+                                Foreground="{StaticResource BrushDim}" Cursor="Hand" Click="BtnClose_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Content area for post-login views -->
+                <Grid Grid.Row="1" Margin="32,8">
+
+                    <!-- VIEW 1B: DEPENDENCY PREFLIGHT -->
+                    <StackPanel x:Name="ViewPreflight" VerticalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock Text="DEPENDENCY PREFLIGHT" FontFamily="Consolas" FontSize="18" Foreground="{StaticResource BrushWhite}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="RASD checks every prerequisite before deploying." FontFamily="Consolas" FontSize="11" Foreground="{StaticResource BrushDim}" HorizontalAlignment="Center" Margin="0,0,0,18"/>
+                        <Border Background="#0A1524" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Padding="16,12" MaxWidth="540" MinWidth="540">
+                            <StackPanel x:Name="PreflightList"/>
+                        </Border>
+                        <TextBlock x:Name="TxtPreflightNote" Text="" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource BrushDim}" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="540" HorizontalAlignment="Center" Margin="0,14,0,16"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button x:Name="BtnInstallMissing" Content="INSTALL MISSING COMPONENTS" Style="{StaticResource AccentButton}" Width="260" Margin="0,0,10,0" Click="BtnInstallMissing_Click"/>
+                            <Button x:Name="BtnPreflightContinue" Content="CONTINUE" Style="{StaticResource AccentButton}" Width="150" Click="BtnPreflightContinue_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- VIEW 2: INSTALL PROGRESS -->
+                    <StackPanel x:Name="ViewInstall" VerticalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock x:Name="TxtInstallMode" Text="DEPLOYING [TIER]" FontFamily="Consolas" FontSize="18" Foreground="{StaticResource BrushWhite}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="Please do not turn off the machine." FontFamily="Consolas" FontSize="12" Foreground="{StaticResource BrushDim}" HorizontalAlignment="Center" Margin="0,0,0,28"/>
+                        <ProgressBar x:Name="PbInstall" Height="4" Width="420" Background="{StaticResource BrushVoid}" Foreground="{StaticResource BrushAccent}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" Minimum="0" Maximum="100"/>
+                        <TextBlock x:Name="TxtLog" Text="Extracting payload..." FontFamily="Consolas" FontSize="11" Foreground="{StaticResource BrushGhost}" HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                    </StackPanel>
+
+                    <!-- VIEW 2B: FAILURE (deployment did not complete) -->
+                    <StackPanel x:Name="ViewFailure" VerticalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock Text="✕" FontFamily="Consolas" FontSize="40" Foreground="#EF4444" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <TextBlock Text="DEPLOYMENT FAILED" FontFamily="Consolas" FontSize="18" Foreground="{StaticResource BrushWhite}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="TxtFailureMsg" Text="" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11" Foreground="#FCA5A5" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="420" Margin="0,0,0,16"/>
+                        <Border Background="#0AF97316" BorderBrush="#30F97316" BorderThickness="1" CornerRadius="4" Padding="12,8" MaxWidth="420" Margin="0,0,0,20">
+                            <TextBlock TextWrapping="Wrap" FontFamily="Consolas" FontSize="10" Foreground="{StaticResource BrushGhost}">
+                                <Run Foreground="{StaticResource BrushAccent}" FontWeight="Bold">LOG: </Run>
+                                <Run>Full details were written to C:\ProgramData\RASD\install.log</Run>
+                            </TextBlock>
+                        </Border>
+                        <Button Content="VIEW INSTALL LOG" Style="{StaticResource AccentButton}" Width="220" HorizontalAlignment="Center" Margin="0,0,0,10" Click="BtnViewInstallLog_Click"/>
+                        <Button Content="CLOSE" Style="{StaticResource AccentButton}" Width="220" HorizontalAlignment="Center" Click="BtnClose_Click"/>
+                    </StackPanel>
+
+                    <!-- VIEW 3: SUCCESS -->
+                    <StackPanel x:Name="ViewSuccess" VerticalAlignment="Center" Visibility="Collapsed">
+                        <Path Data="M 12,24 L 20,32 L 36,16" Stroke="{StaticResource BrushOnline}" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="48" Height="48" Stretch="None" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                        <TextBlock Text="DEPLOYMENT COMPLETE" FontFamily="Consolas" FontSize="18" Foreground="{StaticResource BrushWhite}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="TxtSuccessMsg" Text="The system has been successfully provisioned." FontFamily="Consolas" FontSize="12" Foreground="{StaticResource BrushDim}" HorizontalAlignment="Center" Margin="0,0,0,28"/>
+                        <Button Content="FINISH &amp; EXIT" Style="{StaticResource AccentButton}" Width="200" HorizontalAlignment="Center" Click="BtnClose_Click"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Footer -->
+                <Border Grid.Row="2" Background="{StaticResource BrushVoid}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,1,0,0" CornerRadius="0,0,10,10" Padding="16,7">
+                    <TextBlock Text="RASD Operations Ecosystem v2.0" FontFamily="Consolas" FontSize="9" Foreground="{StaticResource BrushMuted}" HorizontalAlignment="Center"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- =========================================================
+             VIEW 1: WELCOME — split-panel login overlay (shown first)
+             ========================================================= -->
+        <Grid x:Name="ViewLogin">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="290"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT: decorative brand panel -->
+            <Border Grid.Column="0" CornerRadius="10,0,0,10"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#0D1B2A" Offset="0"/>
+                        <GradientStop Color="#1B4332" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24,0">
+                    <TextBlock Text="R.A.S.D" FontFamily="Segoe UI" FontSize="36" FontWeight="Bold"
+                               Foreground="#FFFFFF" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Remote Administration Security Dashboard"
+                               FontFamily="Segoe UI" FontSize="12" Foreground="#C7CDD4"
+                               TextAlignment="Center" TextWrapping="Wrap" MaxWidth="220" Margin="0,10,0,0"/>
+                    <TextBlock Text="Secure. Monitor. Control." FontFamily="Segoe UI" FontSize="11"
+                               FontStyle="Italic" Foreground="#00B4D8"
+                               HorizontalAlignment="Center" Margin="0,14,0,0"/>
+                    <Path Data="M22,2 L42,10 L42,26 C42,38 22,46 22,46 C22,46 2,38 2,26 L2,10 Z"
+                          Stroke="#00B4D8" StrokeThickness="2" Fill="#1500B4D8"
+                          Width="44" Height="48" Stretch="Uniform"
+                          HorizontalAlignment="Center" Margin="0,26,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- RIGHT: form panel -->
+            <Border Grid.Column="1" CornerRadius="0,10,10,0" Background="#FFFFFF">
+                <Grid Margin="34,26">
+                    <!-- Close button -->
+                    <Button Content="✕" Width="26" Height="24" FontFamily="Segoe UI" FontSize="12"
+                            HorizontalAlignment="Right" VerticalAlignment="Top"
+                            Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"
+                            Cursor="Hand" Click="BtnClose_Click"/>
+
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Welcome" FontFamily="Segoe UI" FontSize="22" FontWeight="Bold"
+                                   Foreground="#0D1B2A"/>
+                        <TextBlock Text="Please select your role and sign in to continue."
+                                   FontFamily="Segoe UI" FontSize="11" Foreground="#6B7280" Margin="0,4,0,16"/>
+
+                        <!-- Role selection -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="CardAdmin" Grid.Column="0" Tag="ADMIN" Cursor="Hand"
+                                    CornerRadius="8" BorderThickness="1" BorderBrush="#1A6FC4"
+                                    Background="#E8F1FB" Margin="0,0,5,0" Padding="12,10"
+                                    MouseLeftButtonDown="RoleCard_Click">
+                                <StackPanel>
+                                    <TextBlock Text="Administrator" FontFamily="Segoe UI" FontSize="13"
+                                               FontWeight="SemiBold" Foreground="#1A6FC4"/>
+                                    <TextBlock Text="Full installation" FontFamily="Segoe UI" FontSize="10"
+                                               Foreground="#6B7280" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="CardEndpoint" Grid.Column="1" Tag="CLIENT" Cursor="Hand"
+                                    CornerRadius="8" BorderThickness="1" BorderBrush="#D1D5DB"
+                                    Background="#FFFFFF" Margin="5,0,0,0" Padding="12,10"
+                                    MouseLeftButtonDown="RoleCard_Click">
+                                <StackPanel>
+                                    <TextBlock Text="Endpoint User" FontFamily="Segoe UI" FontSize="13"
+                                               FontWeight="SemiBold" Foreground="#0D9B6E"/>
+                                    <TextBlock Text="Lightweight installation" FontFamily="Segoe UI" FontSize="10"
+                                               Foreground="#6B7280" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Username -->
+                        <Grid Margin="0,0,0,12">
+                            <TextBox x:Name="TxtUser" Height="40" FontFamily="Segoe UI" FontSize="13"
+                                     Foreground="#0D1B2A" CaretBrush="#0D1B2A"
+                                     Background="#F3F4F6" BorderBrush="#D1D5DB" BorderThickness="1"
+                                     VerticalContentAlignment="Center" Padding="12,0"
+                                     TextChanged="TxtUser_TextChanged"/>
+                            <TextBlock x:Name="PhUser" Text="Username" Foreground="#9CA3AF"
+                                       FontFamily="Segoe UI" FontSize="13" IsHitTestVisible="False"
+                                       VerticalAlignment="Center" Margin="14,0,0,0"/>
+                        </Grid>
+
+                        <!-- Password -->
+                        <Grid Margin="0,0,0,16">
+                            <PasswordBox x:Name="TxtPass" Height="40" FontFamily="Segoe UI" FontSize="13"
+                                         Foreground="#0D1B2A" CaretBrush="#0D1B2A"
+                                         Background="#F3F4F6" BorderBrush="#D1D5DB" BorderThickness="1"
+                                         VerticalContentAlignment="Center" Padding="12,0"
+                                         PasswordChanged="TxtPass_PasswordChanged"/>
+                            <TextBlock x:Name="PhPass" Text="Password" Foreground="#9CA3AF"
+                                       FontFamily="Segoe UI" FontSize="13" IsHitTestVisible="False"
+                                       VerticalAlignment="Center" Margin="14,0,0,0"/>
+                        </Grid>
+
+                        <Button x:Name="BtnLogin" Content="Continue" Style="{StaticResource ContinueBtn}"
+                                Height="42" Click="BtnLogin_Click"/>
+
+                        <TextBlock x:Name="TxtAuthError"
+                                   Text="Invalid username or password. Please try again."
+                                   Foreground="#DC2626" FontFamily="Segoe UI" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,12,0,0" Visibility="Hidden"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

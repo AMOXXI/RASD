@@ -1,0 +1,94 @@
+<Application x:Class="RASD_Setup.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <Color x:Key="ColorVoid">#FF080808</Color>
+        <Color x:Key="ColorSurface">#FF111111</Color>
+        <Color x:Key="ColorPanel">#FF181818</Color>
+        <Color x:Key="ColorBorder">#FF262626</Color>
+        <Color x:Key="ColorMuted">#FF404040</Color>
+        <Color x:Key="ColorDim">#FF737373</Color>
+        <Color x:Key="ColorGhost">#FFA3A3A3</Color>
+        <Color x:Key="ColorWhite">#FFFAFAFA</Color>
+        <Color x:Key="ColorAccent">#FFF97316</Color>
+
+        <SolidColorBrush x:Key="BrushVoid"    Color="{StaticResource ColorVoid}" />
+        <SolidColorBrush x:Key="BrushSurface" Color="{StaticResource ColorSurface}" />
+        <SolidColorBrush x:Key="BrushPanel"   Color="{StaticResource ColorPanel}" />
+        <SolidColorBrush x:Key="BrushBorder"  Color="{StaticResource ColorBorder}" />
+        <SolidColorBrush x:Key="BrushMuted"   Color="{StaticResource ColorMuted}" />
+        <SolidColorBrush x:Key="BrushDim"     Color="{StaticResource ColorDim}" />
+        <SolidColorBrush x:Key="BrushGhost"   Color="{StaticResource ColorGhost}" />
+        <SolidColorBrush x:Key="BrushWhite"   Color="{StaticResource ColorWhite}" />
+        <SolidColorBrush x:Key="BrushAccent"  Color="{StaticResource ColorAccent}" />
+        <SolidColorBrush x:Key="BrushOnline"  Color="#FF22C55E" />
+
+        <Style x:Key="BaseTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource BrushVoid}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushWhite}"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="BasePasswordBox" TargetType="PasswordBox">
+            <Setter Property="Background" Value="{StaticResource BrushVoid}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushWhite}"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="CmdButton" TargetType="Button">
+            <Setter Property="Background"   Value="Transparent" />
+            <Setter Property="BorderBrush"  Value="{StaticResource BrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground"   Value="{StaticResource BrushGhost}" />
+            <Setter Property="FontFamily"   Value="Consolas" />
+            <Setter Property="FontSize"     Value="12" />
+            <Setter Property="Padding"      Value="16,8" />
+            <Setter Property="Cursor"       Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#0AFFFFFF"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource BrushMuted}"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushWhite}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#15FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource CmdButton}">
+            <Setter Property="BorderBrush" Value="#60F97316"/>
+            <Setter Property="Foreground"  Value="{StaticResource BrushAccent}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#15F97316"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Application.Resources>
+</Application>

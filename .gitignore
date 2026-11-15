@@ -1,0 +1,29 @@
+# Node
+node_modules/
+dist/
+npm-debug.log*
+.env
+
+# .NET
+bin/
+obj/
+
+# Graphify output (regenerated via hooks)
+graphify-out/
+.venv-graphify/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Editor
+.vs/
+.vscode/
+
+# Local tooling and nested repos (not part of RASD)
+.tools/
+bifrost-model-router/
+
+# Build outputs that contain secrets (.env, node.key)
+RASD_Setup/Payload.zip
+RASD_Staging/

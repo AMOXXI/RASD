@@ -1,0 +1,366 @@
+<Window x:Class="RASD_AdminWatcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RASD — Admin Operations Center"
+        Width="1060" Height="720"
+        MinWidth="820" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Closing="Window_Closing"
+        StateChanged="Window_StateChanged">
+
+    <Window.Resources>
+        <!-- Primary (teal) button -->
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#00B4D8"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Opacity" Value="0.90"/></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.40"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stop (red) button -->
+        <Style x:Key="StopBtn" TargetType="Button" BasedOn="{StaticResource PrimaryBtn}">
+            <Setter Property="Background" Value="#DC2626"/>
+        </Style>
+
+        <!-- Secondary button -->
+        <Style x:Key="SecondaryBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="#9CA3AF"/>
+            <Setter Property="Background" Value="#1A2535"/>
+            <Setter Property="BorderBrush" Value="#2A3545"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#222F42"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.40"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Title-bar icon button -->
+        <Style x:Key="IconBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="4" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#142433"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Close icon button (red hover) -->
+        <Style x:Key="CloseIconBtn" TargetType="Button" BasedOn="{StaticResource IconBtn}">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="4" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#DC2626"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="#0D1B2A" BorderBrush="#1E3A4A" BorderThickness="1" CornerRadius="10">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44"/>   <!-- Row 0: Title bar    -->
+                <RowDefinition Height="Auto"/> <!-- Row 1: Alert panel  -->
+                <RowDefinition Height="Auto"/> <!-- Row 2: Status cards -->
+                <RowDefinition Height="Auto"/> <!-- Row 3: Controls     -->
+                <RowDefinition Height="*"/>    <!-- Row 4: Log terminal -->
+                <RowDefinition Height="Auto"/> <!-- Row 5: Status bar   -->
+            </Grid.RowDefinitions>
+
+            <!-- ROW 0 — TITLE BAR -->
+            <Border Grid.Row="0" Background="#0B1622" BorderBrush="#1E3A4A" BorderThickness="0,0,0,1"
+                    CornerRadius="10,10,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid Margin="16,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="RASD · ADMIN OPERATIONS CENTER"
+                               FontFamily="Consolas" FontSize="11" FontWeight="Bold"
+                               Foreground="#00B4D8" VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtClock" FontFamily="Consolas" FontSize="10"
+                                   Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Button Content="⧉  Open Dashboard" Width="Auto" Padding="12,0" ToolTip="Open the operations dashboard in the RASD shell"
+                                Style="{StaticResource IconBtn}" Click="BtnOpenDashboard_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="BtnTheme" Width="44" ToolTip="Toggle Light / Dark Mode"
+                                Style="{StaticResource IconBtn}" Click="BtnTheme_Click"/>
+                        <Button x:Name="BtnFullscreen" Content="[ ]" ToolTip="Toggle Fullscreen"
+                                Style="{StaticResource IconBtn}" Click="BtnFullscreen_Click"/>
+                        <Button Content="TRAY" Width="42" ToolTip="Minimize to System Tray"
+                                Style="{StaticResource IconBtn}" Click="BtnTray_Click"/>
+                        <Border Width="1" Background="#1E3A4A" Margin="4,4"/>
+                        <Button Content="—" Width="28" Style="{StaticResource IconBtn}" Click="BtnMinimize_Click"/>
+                        <Button Content="✕" Style="{StaticResource CloseIconBtn}" Click="BtnClose_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ROW 1 — WIRED-LAN WARNING BANNER + ALERT PANEL -->
+            <StackPanel Grid.Row="1">
+                <!-- Phase 3: shown when no wired Ethernet adapter is up -->
+                <Border x:Name="WiredWarnBanner" Margin="14,10,14,0" Visibility="Collapsed"
+                        Background="#3A1E00" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="8" Padding="14,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚠" FontSize="16" Foreground="#F59E0B" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <StackPanel>
+                            <TextBlock x:Name="WiredWarnTitle" Text="NO WIRED LAN — AGENTS CANNOT CONNECT"
+                                       FontFamily="Consolas" FontSize="12" FontWeight="Bold" Foreground="#FDBA74"/>
+                            <TextBlock x:Name="WiredWarnBody" TextWrapping="Wrap" FontFamily="Consolas" FontSize="10"
+                                       Foreground="#FED7AA" Margin="0,3,0,0"
+                                       Text="RASD only serves endpoints over a wired Ethernet connection. Connect the admin machine to the LAN with an Ethernet cable."/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ALERT PANEL (cards rendered by AlertManager) -->
+                <Border x:Name="AlertContainer" Margin="14,10,14,0" Visibility="Collapsed">
+                    <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel x:Name="AlertsPanel" Margin="0,2,0,2"/>
+                    </ScrollViewer>
+                </Border>
+            </StackPanel>
+
+            <!-- ROW 2 — STATUS CARDS -->
+            <Grid Grid.Row="2" Margin="14,12,14,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- DATABASE -->
+                <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="8"
+                        Background="#0F1923" BorderBrush="#1E3A4A" BorderThickness="1">
+                    <StackPanel Margin="14,11">
+                        <TextBlock Text="DATABASE" FontFamily="Consolas" FontSize="9" Foreground="#6B7280"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Ellipse x:Name="DotDb" Width="9" Height="9" VerticalAlignment="Center" Fill="#2D3748" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="LblDb" Text="CHECKING…" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#6B7280"/>
+                        </StackPanel>
+                        <TextBlock Text="PostgreSQL :5432" FontFamily="Consolas" FontSize="9" Foreground="#4A5568" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- API SERVER -->
+                <Border Grid.Column="1" Margin="0,0,8,0" CornerRadius="8"
+                        Background="#0F1923" BorderBrush="#1E3A4A" BorderThickness="1">
+                    <StackPanel Margin="14,11">
+                        <TextBlock Text="API SERVER" FontFamily="Consolas" FontSize="9" Foreground="#6B7280"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Ellipse x:Name="DotApi" Width="9" Height="9" VerticalAlignment="Center" Fill="#2D3748" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="LblApi" Text="CHECKING…" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#6B7280"/>
+                        </StackPanel>
+                        <TextBlock Text="Node.js :3000" FontFamily="Consolas" FontSize="9" Foreground="#4A5568" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- LAN ADDRESS -->
+                <Border Grid.Column="2" Margin="0,0,8,0" CornerRadius="8"
+                        Background="#0F1923" BorderBrush="#1E3A4A" BorderThickness="1">
+                    <StackPanel Margin="14,11">
+                        <TextBlock Text="LAN ADDRESS" FontFamily="Consolas" FontSize="9" Foreground="#6B7280"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Ellipse x:Name="DotIp" Width="9" Height="9" VerticalAlignment="Center" Fill="#2D3748" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="LblIp" Text="DETECTING…" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#6B7280"/>
+                        </StackPanel>
+                        <TextBlock Text="Active IPv4 interface" FontFamily="Consolas" FontSize="9" Foreground="#4A5568" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- RELAY ENGINE -->
+                <Border Grid.Column="3" CornerRadius="8"
+                        Background="#0F1923" BorderBrush="#1E3A4A" BorderThickness="1">
+                    <StackPanel Margin="14,11">
+                        <TextBlock Text="RELAY ENGINE" FontFamily="Consolas" FontSize="9" Foreground="#6B7280"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Ellipse x:Name="DotRelay" Width="9" Height="9" VerticalAlignment="Center" Fill="#2D3748" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="LblRelay" Text="IDLE" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#6B7280"/>
+                        </StackPanel>
+                        <TextBlock Text="WebSocket bridge" FontFamily="Consolas" FontSize="9" Foreground="#4A5568" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ROW 3 — CONTROL BUTTONS -->
+            <Grid Grid.Row="3" Margin="14,12,14,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="BtnStart" Content="▶  START ENGINE" Style="{StaticResource PrimaryBtn}" Click="BtnStart_Click"/>
+                    <Button x:Name="BtnStop" Content="■  STOP ENGINE" Style="{StaticResource StopBtn}" IsEnabled="False" Click="BtnStop_Click"/>
+                    <Button x:Name="BtnRestartApi" Content="↺  RESTART API" Style="{StaticResource SecondaryBtn}" Click="BtnRestartApi_Click"/>
+                    <Button x:Name="BtnScan" Content="◎  SCAN NETWORK" Style="{StaticResource SecondaryBtn}" Click="BtnScan_Click"/>
+                    <Button Content="⊘  CLEAR LOG" Style="{StaticResource SecondaryBtn}" Click="BtnClearLog_Click"/>
+                    <Border Width="1" Background="#1E3A4A" Margin="4,3"/>
+                    <TextBlock x:Name="TxtWatchdog" FontFamily="Consolas" FontSize="9"
+                               Foreground="#4A5568" VerticalAlignment="Center" Text="Watchdog: IDLE"/>
+                </StackPanel>
+
+                <Button Grid.Column="2" x:Name="BtnSearch" Content="⌕  SEARCH"
+                        Style="{StaticResource SecondaryBtn}" Margin="0" Click="BtnSearch_Click"/>
+            </Grid>
+
+            <!-- ROW 4 — LOG TERMINAL -->
+            <Border Grid.Row="4" Margin="14,12,14,0" CornerRadius="8"
+                    Background="#070D14" BorderBrush="#1E3A4A" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Terminal header -->
+                    <Border Grid.Row="0" Background="#0B1622" BorderBrush="#1E3A4A" BorderThickness="0,0,0,1" Padding="13,7">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse Width="8" Height="8" Fill="#60EF4444" Margin="0,0,5,0"/>
+                                <Ellipse Width="8" Height="8" Fill="#60EAB308" Margin="0,0,5,0"/>
+                                <Ellipse Width="8" Height="8" Fill="#6022C55E" Margin="0,0,10,0"/>
+                                <TextBlock Text="OPERATIONS LOG" FontFamily="Consolas" FontSize="10"
+                                           Foreground="#00B4D8" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" x:Name="TxtLogCount" FontFamily="Consolas" FontSize="9"
+                                       Foreground="#4A5568" VerticalAlignment="Center" Text="0 lines"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Search panel (hidden by default) -->
+                    <Border Grid.Row="1" x:Name="SearchPanel" Visibility="Collapsed"
+                            Background="#0B1622" BorderBrush="#1E3A4A" BorderThickness="0,0,0,1" Padding="13,6">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="⌕" FontFamily="Consolas" FontSize="12" Foreground="#6B7280"
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox x:Name="TxtSearch" Grid.Column="1" FontFamily="Consolas" FontSize="11"
+                                     Background="Transparent" Foreground="#D1D5DB" CaretBrush="#00B4D8"
+                                     BorderThickness="0" VerticalAlignment="Center"
+                                     TextChanged="TxtSearch_TextChanged" KeyDown="TxtSearch_KeyDown"/>
+                            <Button Grid.Column="2" Content="✕" FontFamily="Consolas" FontSize="11"
+                                    Foreground="#6B7280" Background="Transparent" BorderThickness="0"
+                                    Cursor="Hand" Click="BtnClearSearch_Click" Padding="6,2"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Log output -->
+                    <ScrollViewer x:Name="LogScroll" Grid.Row="2"
+                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock x:Name="TxtLog" FontFamily="Consolas" FontSize="11"
+                                   Foreground="#A3A3A3" Padding="13,9" TextWrapping="Wrap" LineHeight="20"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- ROW 5 — STATUS BAR / FOOTER -->
+            <Border Grid.Row="5" Background="#0B1622" BorderBrush="#1E3A4A" BorderThickness="0,1,0,0"
+                    CornerRadius="0,0,10,10" Padding="14,7">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <CheckBox x:Name="ChkStartup" FontFamily="Consolas" FontSize="9" Foreground="#6B7280"
+                                  Content=" Launch on Windows startup" VerticalAlignment="Center"
+                                  Checked="ChkStartup_Changed" Unchecked="ChkStartup_Changed"/>
+                        <Border Width="1" Background="#1E3A4A" Margin="10,1"/>
+                        <CheckBox x:Name="ChkTray" FontFamily="Consolas" FontSize="9" Foreground="#6B7280"
+                                  Content=" Minimize to tray" VerticalAlignment="Center"
+                                  Checked="ChkTray_Changed" Unchecked="ChkTray_Changed"/>
+                    </StackPanel>
+
+                    <TextBlock x:Name="TxtStatusBar" Grid.Column="1" FontFamily="Consolas" FontSize="9"
+                               Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Text="RASD Operations Ecosystem v2.0 — Ready"/>
+
+                    <TextBlock Grid.Column="2" Text="RASD Operations Ecosystem v2.0"
+                               FontFamily="Consolas" FontSize="9" Foreground="#2D3748" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,107 @@
+{
+  "$meta": {
+    "name": "RASD SOC Dashboard Design Tokens",
+    "version": "0.2.0-liquid-glass",
+    "status": "AWAITING SIGN-OFF — no app code wired yet (Phase 4 design pass)",
+    "direction": "Apple-caliber craft + iOS 26 Liquid Glass (restrained) · dark-first · RASD navy/teal preserved, deepened for luminous glass · cyan = specular/rim tint",
+    "fonts": "Geist / SF Pro (UI) + JetBrains Mono / SF Mono (data ONLY: IPs, MACs, hashes, log lines)",
+    "material_rules": [
+      "Glass (--glass-*) is for the NAVIGATION layer only: sidebar, top bar, floating dock, modals, tooltips.",
+      "Data surfaces use --surface-* (SOLID). Never glass-on-glass.",
+      "Text/data always sits on a solid token, never directly on glass (accessibility).",
+      "Glass adapts automatically between light and dark. Effect kept restrained (Apple toned it down for legibility)."
+    ],
+    "sources": {
+      "ui-ux-pro-max": "style=Liquid Glass + Modern Dark (Cinema) base + Spatial/VisionOS mechanics; motion=parallax(subtle)+scroll-reveal via IntersectionObserver (no scroll-jack); rejected the DB's iridescent/chromatic 'maximal' variant per the restrained constraint",
+      "design-system": "three-layer token architecture; added glass layer (blur, tint, rim, specular, elevation)",
+      "identity": "navy/teal from the approved v0.1 tokens, base deepened (#020509/#04070D) so glass reads luminous; cyan #00B4D8 as the rim/specular tint"
+    }
+  },
+
+  "primitive": {
+    "color": {
+      "void": "#020509", "base-app": "#04070D", "base-900": "#070C15", "base-850": "#0A1120",
+      "navy-900": "#0A1628", "navy-700": "#1A2535", "navy-600": "#222F42", "navy-500": "#2A3545",
+      "solid-1": "#0C1424", "solid-2": "#101A2E", "solid-3": "#16233A",
+      "cyan-300": "#38D6F5", "cyan-400": "#00B4D8", "cyan-500": "#0891B2", "cyan-600": "#0E7490",
+      "teal-400": "#14B89A", "teal-500": "#0E9276", "signal-400": "#34F5A0",
+      "green-500": "#22C55E", "amber-500": "#F59E0B", "red-500": "#EF4444", "red-600": "#DC2626", "blue-500": "#3B82F6",
+      "white": "#F3F6FA", "slate-300": "#CBD5E1", "slate-400": "#94A3B8", "slate-500": "#64748B", "slate-600": "#475569",
+      "light-bg": "#EEF3F9", "light-surface": "#FFFFFF", "light-border": "#DBE3EC", "light-text": "#08111F"
+    },
+    "space": { "1": "4px", "2": "8px", "3": "12px", "4": "16px", "5": "20px", "6": "24px", "8": "32px", "10": "40px", "12": "48px", "16": "64px" },
+    "radius": { "sm": "6px", "md": "10px", "lg": "16px", "xl": "22px", "pill": "999px" },
+    "font": {
+      "ui": "'Geist', 'SF Pro Display', -apple-system, system-ui, 'Segoe UI', sans-serif",
+      "mono": "'JetBrains Mono', 'SF Mono', ui-monospace, 'Cascadia Code', monospace"
+    },
+    "size": { "2xs": "11px", "xs": "12px", "sm": "13px", "base": "14px", "md": "16px", "lg": "20px", "xl": "28px", "2xl": "40px", "3xl": "56px" },
+    "leading": { "tight": "1.15", "snug": "1.35", "normal": "1.55" },
+    "motion": {
+      "fast": "150ms", "base": "240ms", "slow": "420ms", "glass": "560ms",
+      "ease-out": "cubic-bezier(.16,1,.3,1)", "ease-in-out": "cubic-bezier(.65,0,.35,1)"
+    }
+  },
+
+  "semantic": {
+    "dark": {
+      "bg-app": "{base-app}", "bg-field": "{void}",
+      "surface": "{solid-1}", "surface-2": "{solid-2}", "surface-3": "{solid-3}",
+      "border-subtle": "rgba(255,255,255,.08)", "border-strong": "rgba(255,255,255,.14)",
+      "text-primary": "{white}", "text-secondary": "{slate-400}", "text-muted": "{slate-500}",
+      "primary": "{cyan-400}", "primary-hover": "{cyan-300}", "on-primary": "{void}",
+      "accent": "{teal-400}", "focus-ring": "{cyan-400}",
+      "status-online": "{green-500}", "status-warn": "{amber-500}", "status-critical": "{red-500}", "status-info": "{blue-500}", "pulse": "{signal-400}",
+      "glass-tint": "rgba(10,18,32,.55)", "glass-tint-clear": "rgba(7,12,21,.34)",
+      "glass-blur": "22px", "glass-saturate": "175%", "glass-rim": "rgba(255,255,255,.16)",
+      "glass-inner": "inset 0 1px 0 rgba(255,255,255,.14), inset 0 0 0 1px rgba(255,255,255,.05)",
+      "glass-shadow": "0 16px 48px rgba(0,0,0,.55)", "glass-specular": "rgba(56,214,245,.20)", "glass-refract": "8"
+    },
+    "light": {
+      "bg-app": "{light-bg}", "bg-field": "#E4ECF5",
+      "surface": "{light-surface}", "surface-2": "#F7FAFD", "surface-3": "#EEF3F9",
+      "border-subtle": "rgba(8,17,31,.10)", "border-strong": "rgba(8,17,31,.16)",
+      "text-primary": "{light-text}", "text-secondary": "{slate-500}", "text-muted": "{slate-400}",
+      "primary": "{cyan-600}", "primary-hover": "{cyan-500}", "on-primary": "#FFFFFF",
+      "accent": "{teal-500}", "focus-ring": "{cyan-600}",
+      "status-online": "#16A34A", "status-warn": "#B45309", "status-critical": "{red-600}", "status-info": "#1D4ED8", "pulse": "#0E9276",
+      "glass-tint": "rgba(255,255,255,.55)", "glass-tint-clear": "rgba(255,255,255,.38)", "glass-rim": "rgba(255,255,255,.75)",
+      "glass-inner": "inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 1px rgba(8,17,31,.05)",
+      "glass-shadow": "0 16px 40px rgba(31,49,74,.18)", "glass-specular": "rgba(14,116,144,.16)", "glass-refract": "6"
+    }
+  },
+
+  "component": {
+    "nav-glass": {
+      "$note": "sidebar / topbar / floating dock — the ONLY places glass tokens are used",
+      "bg": "{glass-tint}", "bg-clear": "{glass-tint-clear}",
+      "blur": "{glass-blur}", "saturate": "{glass-saturate}",
+      "rim": "{glass-rim}", "inner-glow": "{glass-inner}", "shadow": "{glass-shadow}",
+      "specular": "{glass-specular}", "edge-refraction-scale": "{glass-refract}",
+      "radius": "{radius.lg}"
+    },
+    "node-card": {
+      "$note": "SOLID data surface — never glass",
+      "bg": "{surface}", "bg-hover": "{surface-2}",
+      "border": "{border-subtle}", "border-hover": "{primary}",
+      "radius": "{radius.md}", "status-shape": "circle=online, triangle=warn, diamond=offline (shape+colour+label, never colour alone)"
+    },
+    "kpi-tile": { "bg": "{surface}", "value-font": "{font.mono}", "value-size": "{size.2xl}", "accent-stripe": "status or primary, 2px top" },
+    "alert-row": { "bg": "{surface}", "bg-hover": "{surface-2}", "stripe": "3px left, severity colour", "radius": "{radius.md}" },
+    "log-line": { "font": "{font.mono}", "size": "{size.xs}", "ts-color": "{text-muted}" },
+    "button-primary": { "bg": "{primary}", "text": "{on-primary}", "radius": "{radius.pill}", "focus-ring": "{focus-ring}" }
+  },
+
+  "performance_budget": {
+    "$note": "runs in WebView2 on integrated graphics during a live demo",
+    "target": "60fps scroll",
+    "max_concurrent_backdrop_filter_in_viewport": 3,
+    "svg_refraction_filters": "nav / hero rims only, never per-card",
+    "rules": [
+      "Do not animate filter/backdrop-filter properties.",
+      "will-change:transform only on the parallax field layer; remove after scroll settles.",
+      "Virtualize the node grid and log stream in the React build (react-window); prototype renders 120 solid DOM cards to prove the layout.",
+      "Specular highlight is a CSS custom-property update only (no repaint of the filter)."
+    ]
+  }
+}

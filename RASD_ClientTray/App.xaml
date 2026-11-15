@@ -1,0 +1,71 @@
+<Application x:Class="RASD_ClientTray.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnExplicitShutdown"
+             Startup="App_Startup">
+    <Application.Resources>
+        <!-- RASD brand identity — navy / teal -->
+        <SolidColorBrush x:Key="BrushVoid"   Color="#0A1628"/>
+        <SolidColorBrush x:Key="BrushPanel"  Color="#0F1F38"/>
+        <SolidColorBrush x:Key="BrushBorder" Color="#1E3A5F"/>
+        <SolidColorBrush x:Key="BrushTeal"   Color="#14B89A"/>
+        <SolidColorBrush x:Key="BrushWhite"  Color="#F1F5F9"/>
+        <SolidColorBrush x:Key="BrushDim"    Color="#94A3B8"/>
+        <SolidColorBrush x:Key="BrushMuted"  Color="#64748B"/>
+        <SolidColorBrush x:Key="BrushOnline" Color="#10B981"/>
+        <SolidColorBrush x:Key="BrushWarn"   Color="#F59E0B"/>
+        <SolidColorBrush x:Key="BrushError"  Color="#EF4444"/>
+
+        <Style x:Key="TealButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrushTeal}"/>
+            <Setter Property="Foreground" Value="#04121F"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize"   Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding"    Value="14,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#17D4B1"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#1E3A5F"/>
+                                <Setter Property="Foreground" Value="#64748B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource TealButton}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushDim}"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#16294A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Application.Resources>
+</Application>
