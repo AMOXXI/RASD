@@ -174,7 +174,7 @@ window's title bar.
 ```
 git log --oneline
 git checkout 33a73f2            # whole tree back to the baseline (detached HEAD)
-git checkout master             # return to the fixed version (branch may be named "main")
+git checkout master             # return to the fixed version
 git revert <commit>             # undo a single item, e.g. git revert 5f864ac
 ```
 
