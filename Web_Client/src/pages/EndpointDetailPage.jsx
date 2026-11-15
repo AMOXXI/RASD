@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Usb, RotateCw, Power, DownloadCloud, Terminal, RefreshCw, X } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getNodes, getNodeForensics, getCommandLog, blockUsb, allowUsb, restartDevice, shutdownDevice, updateWindows, execPowerShell } from '../services/api';
 import { useApp } from '../App';
 
@@ -80,21 +81,13 @@ export default function EndpointDetailPage() {
   return (
     <div>
       {/* Header */}
-      <div className="page-header">
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/endpoints')}>
-            <ChevronLeft size={14}/> Back
-          </button>
-          <div>
-            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <div className={`dot dot-${node.online?'online':'offline'}`} style={{ width:10, height:10 }}/>
-              <h1 className="page-title" style={{ margin:0 }}>{node.hostname||node.ip_address}</h1>
-              <span className={`badge ${node.usb_status==='BLOCKED'?'badge-warn':'badge-online'}`}>{node.usb_status}</span>
-            </div>
-            <p className="page-sub">{node.ip_address} · {node.os_version}</p>
-          </div>
-        </div>
-        <div style={{ display:'flex', gap:8 }}>
+      <PageHeader
+        title={node.hostname||node.ip_address}
+        subtitle={`${node.ip_address} · ${node.os_version}`}
+        leading={<button className="btn btn-ghost btn-sm" onClick={() => navigate('/endpoints')}><ChevronLeft size={14}/> Back</button>}
+        accessory={<><div className={`dot dot-${node.online?'online':'offline'}`} style={{ width:10, height:10 }}/>
+          <span className={`badge ${node.usb_status==='BLOCKED'?'badge-warn':'badge-online'}`}>{node.usb_status}</span></>}
+        actions={<>
           <button className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={13}/></button>
           {node.usb_status === 'ALLOWED'
             ? <button className="btn btn-warn btn-sm" onClick={() => cmd(blockUsb, 'Block USB')} disabled={busy}>
@@ -115,8 +108,8 @@ export default function EndpointDetailPage() {
           <button className="btn btn-ghost btn-sm" onClick={() => setPsModal(true)} disabled={busy}>
             <Terminal size={13}/> Run Script
           </button>
-        </div>
-      </div>
+        </>}
+      />
 
       {/* Tabs */}
       <div className="tabs">

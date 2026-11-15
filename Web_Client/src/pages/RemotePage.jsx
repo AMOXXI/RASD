@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Terminal, Monitor, Usb, RotateCw, Power, DownloadCloud, Send, RefreshCw, ChevronRight } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getNodes, blockUsb, allowUsb, restartDevice, shutdownDevice, updateWindows, updateWindowsAll, execPowerShell, getCommandLog } from '../services/api';
 import { useApp } from '../App';
 
@@ -67,16 +68,16 @@ export default function RemotePage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div><h1 className="page-title">Remote Administration</h1>
-          <p className="page-sub">Send commands to connected endpoints</p></div>
-        <div style={{ display:'flex', gap:8 }}>
+      <PageHeader
+        title="Remote Administration"
+        subtitle="Send commands to connected endpoints"
+        actions={<>
           <button className="btn btn-warn btn-sm" onClick={handleUpdateAll} disabled={busy}>
-            <DownloadCloud size={13}/> Update All Endpoints
+            <DownloadCloud size={14}/> Update All Endpoints
           </button>
-          <button className="btn btn-ghost btn-sm" onClick={loadNodes}><RefreshCw size={13}/></button>
-        </div>
-      </div>
+          <button className="btn btn-ghost btn-sm" onClick={loadNodes} aria-label="Refresh"><RefreshCw size={14}/></button>
+        </>}
+      />
 
       <div style={{ display:'grid', gridTemplateColumns:'280px 1fr', gap:16 }}>
         {/* Endpoint selector */}
@@ -136,7 +137,7 @@ export default function RemotePage() {
                 </div>
               )}
               {node && !node.online && (
-                <div style={{marginTop:12,padding:'8px 12px',background:'var(--c-offline-bg)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:6,fontSize:12,color:'#FCA5A5'}}>
+                <div style={{marginTop:12,padding:'8px 12px',background:'var(--c-offline-bg)',border:'1px solid color-mix(in srgb,var(--crit) 30%,transparent)',borderRadius:10,fontSize:12,color:'var(--crit)'}}>
                   This endpoint is offline. Commands will be queued and delivered when it reconnects.
                 </div>
               )}

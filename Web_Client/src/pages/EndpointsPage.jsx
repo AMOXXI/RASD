@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Monitor, Search, RefreshCw, ChevronRight } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getNodes } from '../services/api';
 import { useApp } from '../App';
 
@@ -37,13 +38,11 @@ export default function EndpointsPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Endpoints</h1>
-          <p className="page-sub">{total} enrolled · {online} online · {total-online} offline</p>
-        </div>
-        <button className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={13}/> Refresh</button>
-      </div>
+      <PageHeader
+        title="Endpoints"
+        subtitle={`${total} enrolled · ${online} online · ${total-online} offline`}
+        actions={<button className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={14}/> Refresh</button>}
+      />
 
       <div className="filter-bar">
         <div className="search-box" style={{ flex:1, maxWidth:320 }}>

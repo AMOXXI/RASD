@@ -30,26 +30,22 @@ export default function Sidebar() {
   return (
     <aside className="sidebar glass">
       {/* Brand */}
-      <div style={{ padding:'20px 16px 16px', borderBottom:'1px solid var(--c-border)' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:11 }}>
-          <div style={{ width:32, height:32, borderRadius:9, display:'grid', placeItems:'center', fontWeight:800,
-            color:'var(--on-accent)', background:'linear-gradient(135deg,var(--accent),var(--accent-2))',
-            boxShadow:'0 0 16px color-mix(in srgb,var(--accent) 45%,transparent)' }}>
-            <img src="/rasd-logo-small.png" alt="" style={{ width:'100%', height:'100%', borderRadius:'inherit', display:'block' }} />
-          </div>
-          <div>
-            <div style={{ fontSize:16, fontWeight:700, color:'var(--c-text)', letterSpacing:'0.05em' }}>RASD</div>
-            <div style={{ fontSize:10, color:'var(--c-accent)', letterSpacing:'0.06em', fontFamily:'var(--font-mono)' }}>SECURE OPS</div>
-          </div>
+      <div className="sidebar-brand">
+        <div className="sidebar-mark">
+          <img src="/rasd-logo-small.png" alt="" />
+        </div>
+        <div>
+          <div className="sidebar-name">RASD</div>
+          <div className="sidebar-tag">Secure Operations</div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex:1, padding:'10px 0' }}>
+      <nav className="sidebar-nav" aria-label="Main">
         {nav.map(({ to, icon: Icon, label, badge }) => (
           <NavLink key={to} to={to}
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
-            <Icon size={16} />
+            <Icon size={18} aria-hidden="true" />
             <span>{label}</span>
             {badge > 0 && <span className="count">{badge > 99 ? '99+' : badge}</span>}
           </NavLink>
@@ -57,12 +53,9 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div style={{ borderTop:'1px solid var(--c-border)', padding:'12px 16px' }}>
-        <button
-          onClick={handleLogout}
-          className="nav-item"
-          style={{ width:'100%', border:'none', background:'none', cursor:'pointer', padding:'8px 10px' }}>
-          <LogOut size={15} />
+      <div className="sidebar-foot">
+        <button onClick={handleLogout} className="nav-item" style={{ width: 'calc(100% - 24px)' }}>
+          <LogOut size={18} aria-hidden="true" />
           <span>Logout</span>
         </button>
       </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, Users, AlertTriangle, Plus, Trash2, RefreshCw, X } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getAllForensics, getUsers, deleteUser, updateUserRole, createUser } from '../services/api';
 import { useApp } from '../App';
 
@@ -52,10 +53,11 @@ export default function SecurityPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div><h1 className="page-title">Security</h1><p className="page-sub">Threat events and access control</p></div>
-        <button className="btn btn-ghost btn-sm" onClick={tab==='events'?loadEvents:loadUsers}><RefreshCw size={13}/></button>
-      </div>
+      <PageHeader
+        title="Security"
+        subtitle="Threat events and access control"
+        actions={<button className="btn btn-ghost btn-sm" onClick={tab==='events'?loadEvents:loadUsers} aria-label="Refresh"><RefreshCw size={14}/></button>}
+      />
 
       <div className="tabs">
         {[['events','Security Events'],['access','Access Control']].map(([k,l])=>(

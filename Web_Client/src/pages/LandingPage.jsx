@@ -56,13 +56,14 @@ export default function LandingPage() {
 
       <div className="lp-wrap">
         <section className="lp-hero">
-          <div className="lp-lozenge" aria-hidden="true"><b /><b /></div>
-          <p className="lp-eyebrow reveal">Endpoint security · wired-LAN only</p>
-          <h1 className="reveal">Command every endpoint <span className="grad">through one pane of glass.</span></h1>
-          <p className="lp-sub reveal">RASD discovers, authenticates and controls every machine on your wired network in real time — no agents lost, no Wi-Fi trusted, no command unaccounted for.</p>
-          <div className="lp-cta reveal">
-            <button className="btn btn-primary" onClick={() => navigate('/login')}>Go to Dashboard</button>
-            <button className="btn btn-ghost" onClick={() => scrollTo('lp-feat')}>See how it works</button>
+          <div className="lp-hero-panel glass reveal">
+            <p className="lp-eyebrow">Endpoint security · wired-LAN only</p>
+            <h1>Command every endpoint <span className="grad">through one pane of glass.</span></h1>
+            <p className="lp-sub">RASD discovers, authenticates and controls every machine on your wired network in real time — no agents lost, no Wi-Fi trusted, no command unaccounted for.</p>
+            <div className="lp-cta">
+              <button className="btn btn-primary" onClick={() => navigate('/login')}>Go to Dashboard</button>
+              <button className="btn btn-ghost" onClick={() => scrollTo('lp-feat')}>See how it works</button>
+            </div>
           </div>
           <div className="lp-cue reveal"><span className="ln" />SCROLL</div>
         </section>

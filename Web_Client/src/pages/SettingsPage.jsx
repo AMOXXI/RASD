@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings2, Activity, Database, User, Info, Shield, RefreshCw } from 'lucide-react';
+import { Settings2, Activity, Database, User, Info, Shield, RefreshCw, Sun, Moon } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getHealth } from '../services/api';
 import { useApp } from '../App';
 
@@ -46,10 +47,11 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div><h1 className="page-title">Settings</h1><p className="page-sub">Platform configuration and preferences</p></div>
-        <button className="btn btn-ghost btn-sm" onClick={loadHealth}><RefreshCw size={13}/></button>
-      </div>
+      <PageHeader
+        title="Settings"
+        subtitle="Platform configuration and preferences"
+        actions={<button className="btn btn-ghost btn-sm" onClick={loadHealth} aria-label="Refresh"><RefreshCw size={14}/></button>}
+      />
 
       {/* System Status */}
       <Section title="System Status" icon={Activity}>
@@ -74,7 +76,7 @@ export default function SettingsPage() {
             <div style={{fontSize:11,color:'var(--c-dim)'}}>Currently: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</div>
           </div>
           <button className="btn btn-ghost" onClick={toggleTheme}>
-            {theme==='dark' ? '☀ Switch to Light' : '◑ Switch to Dark'}
+            {theme==='dark' ? <><Sun size={14}/> Switch to Light</> : <><Moon size={14}/> Switch to Dark</>}
           </button>
         </div>
       </Section>
@@ -105,7 +107,7 @@ export default function SettingsPage() {
         <Row label="University"   value="Ar-Rasheed Smart University, Sana'a"/>
         <Row label="Department"   value="Cybersecurity — 4th Year"/>
         <Row label="Project Type" value="Graduation Project 2026"/>
-        <div style={{marginTop:16,padding:'12px 16px',background:'var(--c-accent-bg)',border:'1px solid rgba(249,115,22,0.3)',borderRadius:6}}>
+        <div style={{marginTop:16,padding:'12px 16px',background:'var(--c-accent-bg)',border:'1px solid color-mix(in srgb,var(--accent) 28%,transparent)',borderRadius:12}}>
           <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
             <Shield size={16} style={{color:'var(--c-accent)',flexShrink:0,marginTop:1}}/>
             <div style={{fontSize:12,color:'var(--c-muted)',lineHeight:1.6}}>

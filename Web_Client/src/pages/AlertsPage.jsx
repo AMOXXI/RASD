@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, CheckCheck, RefreshCw, Filter } from 'lucide-react';
+import { Bell, CheckCheck, RefreshCw, Filter, Check } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getAlerts, markAlertRead, markAllRead } from '../services/api';
 import { useApp } from '../App';
 
@@ -46,16 +47,14 @@ export default function AlertsPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Alerts</h1>
-          <p className="page-sub">{unreadCnt} unread · {alerts.length} total</p>
-        </div>
-        <div style={{ display:'flex', gap:8 }}>
-          <button className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={13}/></button>
-          {unreadCnt>0 && <button className="btn btn-success btn-sm" onClick={handleAllRead}><CheckCheck size={13}/> Mark All Read</button>}
-        </div>
-      </div>
+      <PageHeader
+        title="Alerts"
+        subtitle={`${unreadCnt} unread · ${alerts.length} total`}
+        actions={<>
+          <button className="btn btn-ghost btn-sm" onClick={load} aria-label="Refresh"><RefreshCw size={14}/></button>
+          {unreadCnt>0 && <button className="btn btn-success btn-sm" onClick={handleAllRead}><CheckCheck size={14}/> Mark All Read</button>}
+        </>}
+      />
 
       <div className="filter-bar">
         {['all','unread'].map(f=>(
@@ -77,7 +76,7 @@ export default function AlertsPage() {
         ) : (
           <div>
             {visible.map(a=>(
-              <div key={a.alert_id} style={{padding:'12px 20px',borderBottom:'1px solid var(--c-border)',display:'flex',alignItems:'flex-start',gap:14,background:!a.is_read?'rgba(249,115,22,0.04)':'transparent',opacity:a.is_read?0.65:1}}>
+              <div key={a.alert_id} style={{padding:'12px 20px',borderBottom:'1px solid var(--c-border)',display:'flex',alignItems:'flex-start',gap:14,background:!a.is_read?'var(--c-accent-bg)':'transparent',opacity:a.is_read?0.65:1}}>
                 <div style={{paddingTop:4,flexShrink:0}}><div className={`dot ${!a.is_read?'dot-warn':'dot-muted'}`}/></div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
@@ -87,7 +86,7 @@ export default function AlertsPage() {
                   </div>
                   <div style={{fontSize:13,color:!a.is_read?'var(--c-text)':'var(--c-muted)'}}>{a.message}</div>
                 </div>
-                {!a.is_read && <button className="btn btn-ghost btn-xs" onClick={()=>handleRead(a.alert_id)}>✓ Read</button>}
+                {!a.is_read && <button className="btn btn-ghost btn-xs" onClick={()=>handleRead(a.alert_id)}><Check size={12}/> Read</button>}
               </div>
             ))}
           </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ScrollText, Search, RefreshCw, Download } from 'lucide-react';
+import { ScrollText, Search, RefreshCw, Download, Pause, Play } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getLogs } from '../services/api';
 import { useApp } from '../App';
 
@@ -58,16 +59,17 @@ export default function LogsPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div><h1 className="page-title">System Logs</h1><p className="page-sub">{visible.length} entries shown</p></div>
-        <div style={{ display:'flex', gap:8 }}>
+      <PageHeader
+        title="System Logs"
+        subtitle={`${visible.length} entries shown`}
+        actions={<>
           <button className={`btn btn-sm ${autoRefresh?'btn-primary':'btn-ghost'}`} onClick={()=>setAutoRefresh(a=>!a)}>
-            {autoRefresh ? '⏸ Auto Refresh ON' : '▶ Auto Refresh'}
+            {autoRefresh ? <><Pause size={14}/> Auto Refresh On</> : <><Play size={14}/> Auto Refresh</>}
           </button>
           <button className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={13}/></button>
-          <button className="btn btn-ghost btn-sm" onClick={()=>exportCSV(visible)} disabled={!visible.length}><Download size={13}/> CSV</button>
-        </div>
-      </div>
+          <button className="btn btn-ghost btn-sm" onClick={()=>exportCSV(visible)} disabled={!visible.length}><Download size={14}/> CSV</button>
+        </>}
+      />
 
       {/* Filters */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:10, marginBottom:16 }}>

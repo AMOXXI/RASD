@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Monitor, Bell, Shield, Activity, RefreshCw } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getHealth, getNodes, getAlerts } from '../services/api';
 import { useApp } from '../App';
 
@@ -62,15 +63,11 @@ export default function OverviewPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Overview</h1>
-          <p className="page-sub">Last refreshed {lastRefresh.toLocaleTimeString()}</p>
-        </div>
-        <button className="btn btn-ghost btn-sm" onClick={refresh}>
-          <RefreshCw size={13} /> Refresh
-        </button>
-      </div>
+      <PageHeader
+        title="Overview"
+        subtitle={`Last refreshed ${lastRefresh.toLocaleTimeString()}`}
+        actions={<button className="btn btn-ghost btn-sm" onClick={refresh}><RefreshCw size={14} /> Refresh</button>}
+      />
 
       {loading ? (
         <div style={{ display:'flex', justifyContent:'center', padding:60 }}>

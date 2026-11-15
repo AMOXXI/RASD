@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { FileBarChart2, Download, RefreshCw } from 'lucide-react';
+import { FileBarChart2, Download, RefreshCw, Monitor, Bell, Search, Terminal } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getReportSummary, getActivityReport, getAlertsReport, getEndpointsReport } from '../services/api';
 import { useApp } from '../App';
 
@@ -47,9 +48,7 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div><h1 className="page-title">Reports</h1><p className="page-sub">Generate and export activity reports</p></div>
-      </div>
+      <PageHeader title="Reports" subtitle="Generate and export activity reports" />
 
       {/* Builder */}
       <div className="card" style={{marginBottom:16}}>
@@ -103,17 +102,17 @@ export default function ReportsPage() {
 function SummaryView({ data }) {
   const { period, nodes, alerts, forensics, commands } = data;
   const sections = [
-    { label:'Endpoints', icon:'📡', items: [['Total',nodes?.total],['Online',nodes?.online],['Offline',nodes?.offline],['USB Blocked',nodes?.usb_blocked]] },
-    { label:`Alerts (${period?.from?.substring(0,10)} → ${period?.to?.substring(0,10)})`, icon:'🔔', items:[['Total',alerts?.total],['Unread',alerts?.unread],['Critical',alerts?.critical]] },
-    { label:'Forensic Events', icon:'🔍', items:[['Total',forensics?.total],['Critical',forensics?.critical],['Warning',forensics?.warn],['Info',forensics?.info]] },
-    { label:'Commands', icon:'⌨', items:[['Total',commands?.total],['Delivered',commands?.delivered],['Failed',commands?.failed],['Pending',commands?.pending]] },
+    { label:'Endpoints', icon:Monitor, items: [['Total',nodes?.total],['Online',nodes?.online],['Offline',nodes?.offline],['USB Blocked',nodes?.usb_blocked]] },
+    { label:`Alerts (${period?.from?.substring(0,10)} → ${period?.to?.substring(0,10)})`, icon:Bell, items:[['Total',alerts?.total],['Unread',alerts?.unread],['Critical',alerts?.critical]] },
+    { label:'Forensic Events', icon:Search, items:[['Total',forensics?.total],['Critical',forensics?.critical],['Warning',forensics?.warn],['Info',forensics?.info]] },
+    { label:'Commands', icon:Terminal, items:[['Total',commands?.total],['Delivered',commands?.delivered],['Failed',commands?.failed],['Pending',commands?.pending]] },
   ];
   return (
     <div className="card-body">
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:20}}>
         {sections.map(s=>(
           <div key={s.label}>
-            <div style={{fontWeight:600,marginBottom:12,color:'var(--c-text)',display:'flex',gap:8}}>{s.icon} {s.label}</div>
+            <div style={{fontWeight:600,marginBottom:12,color:'var(--c-text)',display:'flex',alignItems:'center',gap:8}}><s.icon size={16} style={{color:'var(--c-accent)'}} aria-hidden="true"/> {s.label}</div>
             {s.items.map(([k,v])=>(
               <div key={k} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--c-border)'}}>
                 <span style={{fontSize:12,color:'var(--c-muted)'}}>{k}</span>
