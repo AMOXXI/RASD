@@ -407,7 +407,7 @@ namespace RASD_Setup
         }
 
         // ====================================================================
-        // WINDOWS REGISTRATION (Apps & Features — "Amir Ali")
+        // WINDOWS REGISTRATION (Apps & Features — "RASD")
         // ====================================================================
         private void RegisterAppInOs()
         {
@@ -421,7 +421,7 @@ namespace RASD_Setup
                 string icon        = Path.Combine(INSTALL_DIR, "assets", "rasd.ico");
 
                 key.SetValue("DisplayName",         "RASD Operations Ecosystem");
-                key.SetValue("Publisher",            "Amir Ali");
+                key.SetValue("Publisher",            "RASD");
                 key.SetValue("DisplayVersion",       "2.0.0");
                 key.SetValue("InstallLocation",      INSTALL_DIR);
                 key.SetValue("InstallDate",          DateTime.Now.ToString("yyyyMMdd"));
@@ -430,7 +430,6 @@ namespace RASD_Setup
                 key.SetValue("EstimatedSize",        450000, RegistryValueKind.DWord);
                 key.SetValue("NoModify",             1, RegistryValueKind.DWord);
                 key.SetValue("NoRepair",             1, RegistryValueKind.DWord);
-                key.SetValue("URLInfoAbout",         "https://github.com/AmirAli-RASD");
                 if (File.Exists(icon)) key.SetValue("DisplayIcon", icon);
             }
         }

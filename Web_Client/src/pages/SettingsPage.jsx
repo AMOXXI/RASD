@@ -102,7 +102,6 @@ export default function SettingsPage() {
       <Section title="About" icon={Info}>
         <Row label="Platform"     value="RASD Operations Ecosystem"/>
         <Row label="Version"      value="2.0.0" mono/>
-        <Row label="Developer"    value="Amir Moneer Ali Al-Dubai"/>
         <Row label="University"   value="Ar-Rasheed Smart University, Sana'a"/>
         <Row label="Department"   value="Cybersecurity — 4th Year"/>
         <Row label="Project Type" value="Graduation Project 2026"/>

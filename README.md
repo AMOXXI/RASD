@@ -233,6 +233,5 @@ RASD was developed as a graduation project at **Ar-Rasheed Smart University** (S
 
 | | |
 |---|---|
-| **Author** | Amir Ali |
 | **Supervisor** | Dr. Saleh Al Riashi |
 | **Version** | 2.0.0 |

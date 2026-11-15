@@ -38,7 +38,6 @@ namespace RASD_Uninstaller
             {
                 Console.WriteLine("╔══════════════════════════════════════════╗");
                 Console.WriteLine("║      RASD ENTERPRISE — UNINSTALLER       ║");
-                Console.WriteLine("║         Published by: Amir Ali            ║");
                 Console.WriteLine("╚══════════════════════════════════════════╝");
                 Console.WriteLine();
             }
