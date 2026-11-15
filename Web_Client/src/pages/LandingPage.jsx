@@ -45,7 +45,7 @@ export default function LandingPage() {
       <AmbientField />
 
       <nav className="lp-nav glass" ref={navRef}><GlassSpec />
-        <div className="lp-brand"><span className="lp-mark">R</span><span>RASD<small>SECURE OPS</small></span></div>
+        <div className="lp-brand"><span className="lp-mark"><img src="/rasd-logo-192.png" alt="" style={{ width:'100%', height:'100%', borderRadius:'inherit', display:'block' }} /></span><span>RASD<small>SECURE OPS</small></span></div>
         <div className="lp-links">
           <button type="button" className="linkish" onClick={() => scrollTo('lp-feat')}>Platform</button>
           <button type="button" className="linkish" onClick={() => scrollTo('lp-prev')}>Dashboard</button>

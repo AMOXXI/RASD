@@ -96,5 +96,10 @@
   <ItemGroup>
     <None Include="app.manifest" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="..\Assets\rasd-logo.png">
+      <Link>rasd-logo.png</Link>
+    </Resource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

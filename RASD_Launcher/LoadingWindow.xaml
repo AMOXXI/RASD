@@ -62,10 +62,13 @@
                 <TextBlock Text="Secure. Monitor. Control." FontFamily="Segoe UI" FontSize="10"
                            FontStyle="Italic" Foreground="#00B4D8"
                            HorizontalAlignment="Center" Margin="0,14,0,0"/>
-                <Path Data="M22,2 L42,10 L42,26 C42,38 22,46 22,46 C22,46 2,38 2,26 L2,10 Z"
-                      Stroke="#00B4D8" StrokeThickness="2" Fill="#1500B4D8"
-                      Width="44" Height="48" Stretch="Uniform"
-                      HorizontalAlignment="Center" Margin="0,24,0,0"/>
+                <Border Width="44" Height="44" CornerRadius="10"
+                        HorizontalAlignment="Center" Margin="0,24,0,0"
+                        RenderOptions.BitmapScalingMode="HighQuality">
+                    <Border.Background>
+                        <ImageBrush ImageSource="pack://application:,,,/rasd-logo.png" Stretch="UniformToFill"/>
+                    </Border.Background>
+                </Border>
             </StackPanel>
         </Border>
 

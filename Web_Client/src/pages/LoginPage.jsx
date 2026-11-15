@@ -48,7 +48,9 @@ export default function LoginPage() {
             <div style={{ width:44, height:44, borderRadius:12, margin:'0 auto 4px', display:'grid', placeItems:'center',
               fontWeight:800, fontSize:20, color:'var(--on-accent)',
               background:'linear-gradient(135deg,var(--accent),var(--accent-2))',
-              boxShadow:'0 0 20px color-mix(in srgb,var(--accent) 50%,transparent)' }}>R</div>
+              boxShadow:'0 0 20px color-mix(in srgb,var(--accent) 50%,transparent)' }}>
+              <img src="/rasd-logo-192.png" alt="RASD" style={{ width:'100%', height:'100%', borderRadius:'inherit', display:'block' }} />
+            </div>
           </div>
           <h2 style={{ textAlign:'center', fontSize:24, margin:'16px 0 0' }}>Sign in to Operations</h2>
           <p style={{ textAlign:'center', color:'var(--c-muted)', fontSize:14, margin:'8px 0 24px' }}>
