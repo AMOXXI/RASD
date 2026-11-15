@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
@@ -8,12 +9,29 @@ using System.Threading;
 namespace RASD_Connector
 {
     /// <summary>
-    /// Monitors the user's Downloads folder for new files.
+    /// Monitors the Downloads folder of every real user profile for new files.
     /// Calculates MD5 hash and reports to the RASD API server as a forensic event.
+    ///
+    /// The connector runs as LocalSystem, whose own profile has no Downloads
+    /// folder, so each C:\Users\&lt;name&gt;\Downloads gets its own watcher. Profiles
+    /// are re-scanned every 60 s so a user logging in for the first time is picked up.
     /// </summary>
     public static class ForensicsMonitor
     {
-        private static FileSystemWatcher _watcher;
+        private const string USERS_ROOT = @"C:\Users";
+        private const int    RESCAN_MS  = 60000;
+        private const int    HASH_ATTEMPTS = 3;
+        private const int    HASH_RETRY_MS = 1000;
+
+        // Built-in / shared profiles that are never watched
+        private static readonly string[] SkippedProfiles =
+            { "Default", "Default User", "Public", "All Users" };
+
+        // One watcher per Downloads folder (guarded by _watchLock)
+        private static readonly Dictionary<string, FileSystemWatcher> _watchers =
+            new Dictionary<string, FileSystemWatcher>(StringComparer.OrdinalIgnoreCase);
+        private static readonly object _watchLock = new object();
+
         private static bool _running;
         private static Thread _thread;
 
@@ -47,54 +65,141 @@ namespace RASD_Connector
         public static void Stop()
         {
             _running = false;
-            if (_watcher != null)
+            lock (_watchLock)
             {
-                _watcher.EnableRaisingEvents = false;
-                _watcher.Dispose();
-                _watcher = null;
+                foreach (var w in _watchers.Values)
+                {
+                    try
+                    {
+                        w.EnableRaisingEvents = false;
+                        w.Dispose();
+                    }
+                    catch { }
+                }
+                _watchers.Clear();
             }
         }
 
         private static void MonitorLoop()
         {
-            try
-            {
-                string downloadsPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "Downloads"
-                );
+            NetworkClient.Log("[FORENSICS] Monitor started — watching Downloads of every user profile under " +
+                USERS_ROOT + " (re-scan every " + (RESCAN_MS / 1000) + "s).");
 
-                if (!Directory.Exists(downloadsPath))
+            while (_running)
+            {
+                try
                 {
-                    Console.WriteLine("[FORENSICS] Downloads folder not found: " + downloadsPath);
-                    return;
+                    ScanProfiles();
+                }
+                catch (Exception ex)
+                {
+                    NetworkClient.Log("[FORENSICS] Monitor error: " + ex.Message);
                 }
 
-                Console.WriteLine("[FORENSICS] Monitoring: " + downloadsPath);
-
-                _watcher = new FileSystemWatcher(downloadsPath)
-                {
-                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.CreationTime,
-                    IncludeSubdirectories = false,
-                    EnableRaisingEvents = true
-                };
-
-                _watcher.Created += OnFileCreated;
-                _watcher.Error += (s, e) =>
-                {
-                    Console.WriteLine("[FORENSICS] Watcher error: " + e.GetException().Message);
-                };
-
-                // Keep thread alive
-                while (_running)
+                // Sleep until the next re-scan, but stop promptly on shutdown.
+                for (int waited = 0; waited < RESCAN_MS && _running; waited += 1000)
                 {
                     Thread.Sleep(1000);
                 }
             }
-            catch (Exception ex)
+        }
+
+        /// <summary>Adds a watcher for every new profile Downloads folder; drops vanished ones.</summary>
+        private static void ScanProfiles()
+        {
+            if (!Directory.Exists(USERS_ROOT))
             {
-                Console.WriteLine("[FORENSICS] Monitor error: " + ex.Message);
+                NetworkClient.Log("[FORENSICS] Users folder not found: " + USERS_ROOT);
+                return;
             }
+
+            foreach (string profile in Directory.GetDirectories(USERS_ROOT))
+            {
+                string name = Path.GetFileName(profile);
+                if (IsSkippedProfile(name)) continue;
+
+                FileAttributes attr;
+                try { attr = File.GetAttributes(profile); }
+                catch { continue; }
+                if ((attr & (FileAttributes.Hidden | FileAttributes.System | FileAttributes.ReparsePoint)) != 0)
+                    continue;
+
+                string downloads = Path.Combine(profile, "Downloads");
+                if (!Directory.Exists(downloads)) continue;
+
+                AddWatcher(downloads);
+            }
+
+            // A deleted profile leaves a dead watcher behind; remove it so the
+            // folder can be watched again if it is ever re-created.
+            lock (_watchLock)
+            {
+                var gone = new List<string>();
+                foreach (string path in _watchers.Keys)
+                {
+                    if (!Directory.Exists(path)) gone.Add(path);
+                }
+                foreach (string path in gone)
+                {
+                    try
+                    {
+                        _watchers[path].EnableRaisingEvents = false;
+                        _watchers[path].Dispose();
+                    }
+                    catch { }
+                    _watchers.Remove(path);
+                    NetworkClient.Log("[FORENSICS] Stopped watching (folder gone): " + path);
+                }
+            }
+        }
+
+        private static bool IsSkippedProfile(string name)
+        {
+            foreach (string skip in SkippedProfiles)
+            {
+                if (string.Equals(name, skip, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
+        private static void AddWatcher(string downloadsPath)
+        {
+            lock (_watchLock)
+            {
+                if (!_running || _watchers.ContainsKey(downloadsPath)) return;
+
+                try
+                {
+                    var watcher = new FileSystemWatcher(downloadsPath)
+                    {
+                        NotifyFilter = NotifyFilters.FileName | NotifyFilters.CreationTime,
+                        IncludeSubdirectories = false
+                    };
+
+                    watcher.Created += OnFileCreated;
+                    // Browsers download to a temp name and rename it when finished.
+                    watcher.Renamed += OnFileRenamed;
+                    watcher.Error += (s, e) =>
+                    {
+                        NetworkClient.Log("[FORENSICS] Watcher error on " + downloadsPath + ": " +
+                            e.GetException().Message);
+                    };
+                    watcher.EnableRaisingEvents = true;
+
+                    _watchers[downloadsPath] = watcher;
+                    NetworkClient.Log("[FORENSICS] Watching: " + downloadsPath);
+                }
+                catch (Exception ex)
+                {
+                    NetworkClient.Log("[FORENSICS] Could not watch " + downloadsPath + ": " + ex.Message);
+                }
+            }
+        }
+
+        private static void OnFileRenamed(object sender, RenamedEventArgs e)
+        {
+            // e.FullPath / e.Name are the NEW name — same handling as a new file.
+            OnFileCreated(sender, e);
         }
 
         private static void OnFileCreated(object sender, FileSystemEventArgs e)
@@ -111,8 +216,11 @@ namespace RASD_Connector
                     Thread.Sleep(500);
 
                     // Skip temporary/partial download files
-                    if (fileName.EndsWith(".tmp") || fileName.EndsWith(".crdownload") ||
-                        fileName.EndsWith(".partial") || fileName.StartsWith("~"))
+                    if (fileName.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".crdownload", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".partial", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".part", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.StartsWith("~"))
                     {
                         return;
                     }
@@ -120,21 +228,27 @@ namespace RASD_Connector
                     // Wait until file is accessible (up to 5 seconds)
                     if (!WaitForFile(filePath, 5000))
                     {
-                        Console.WriteLine("[FORENSICS] File locked, skipping: " + fileName);
+                        NetworkClient.Log("[FORENSICS] File locked, skipping: " + filePath);
                         return;
                     }
 
-                    Console.WriteLine("[FORENSICS] New file detected: " + fileName);
+                    NetworkClient.Log("[FORENSICS] New file detected: " + filePath);
 
-                    // Calculate MD5 hash
-                    string md5Hash = CalculateMD5(filePath);
+                    // Calculate MD5 hash (short retry if the file is still locked)
+                    string md5Hash = null;
+                    for (int attempt = 1; attempt <= HASH_ATTEMPTS; attempt++)
+                    {
+                        md5Hash = CalculateMD5(filePath);
+                        if (!string.IsNullOrEmpty(md5Hash)) break;
+                        if (attempt < HASH_ATTEMPTS) Thread.Sleep(HASH_RETRY_MS);
+                    }
                     if (string.IsNullOrEmpty(md5Hash))
                     {
-                        Console.WriteLine("[FORENSICS] Could not hash file: " + fileName);
+                        NetworkClient.Log("[FORENSICS] Could not hash file: " + filePath);
                         return;
                     }
 
-                    Console.WriteLine("[FORENSICS] MD5: " + md5Hash);
+                    NetworkClient.Log("[FORENSICS] MD5: " + md5Hash);
 
                     // Determine severity
                     string severity = "INFO";
@@ -151,7 +265,7 @@ namespace RASD_Connector
 
                     if (isMalicious)
                     {
-                        Console.WriteLine("[FORENSICS] *** MALICIOUS HASH DETECTED: " + fileName + " ***");
+                        NetworkClient.Log("[FORENSICS] *** MALICIOUS HASH DETECTED: " + fileName + " ***");
                     }
 
                     // Get file size
@@ -163,7 +277,7 @@ namespace RASD_Connector
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("[FORENSICS] Error processing file: " + ex.Message);
+                    NetworkClient.Log("[FORENSICS] Error processing file: " + ex.Message);
                 }
             });
         }
@@ -186,7 +300,7 @@ namespace RASD_Connector
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[FORENSICS] Hash error: " + ex.Message);
+                NetworkClient.Log("[FORENSICS] Hash error: " + ex.Message);
                 return null;
             }
         }
@@ -220,7 +334,7 @@ namespace RASD_Connector
         {
             if (string.IsNullOrEmpty(NodeId))
             {
-                Console.WriteLine("[FORENSICS] No NodeId set, cannot report to API.");
+                NetworkClient.Log("[FORENSICS] No NodeId set, cannot report to API.");
                 return;
             }
 
@@ -251,12 +365,12 @@ namespace RASD_Connector
 
                 using (var response = (HttpWebResponse)request.GetResponse())
                 {
-                    Console.WriteLine("[FORENSICS] Reported to API: " + response.StatusCode);
+                    NetworkClient.Log("[FORENSICS] Reported to API: " + response.StatusCode);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[FORENSICS] API report failed: " + ex.Message);
+                NetworkClient.Log("[FORENSICS] API report failed: " + ex.Message);
             }
         }
 
