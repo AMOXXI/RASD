@@ -31,7 +31,10 @@ namespace RASD_Launcher
             // ── Step 1: RASD Connector (Node.js API) ─────────────────────
             // If the API is already up, don't start a second relay/Node instance.
             bool apiAlreadyRunning = await Task.Run(() => IsApiAlreadyRunning());
-            if (apiAlreadyRunning)
+            // Node can outlive the relay. A healthy API without RASD_Relay means
+            // commands would never reach agents, so only skip when both are up.
+            bool relayRunning = apiAlreadyRunning && IsRelayRunning();
+            if (apiAlreadyRunning && relayRunning)
             {
                 SetStatus("API already running — skipping relay launch");
                 SetStepDone(1, "Online");
@@ -46,6 +49,16 @@ namespace RASD_Launcher
                 SetStepActive(1, "Starting...");
                 SetStatus("Starting RASD Connector (Node.js API)...");
                 SetProgress(5);
+
+                if (apiAlreadyRunning)
+                {
+                    // The relay kills and restarts Node.js when its engine starts
+                    // (NetworkManager.Start -> RestartNodeApi), so the old API goes
+                    // down first. Wait for that (bounded) before waiting for health,
+                    // otherwise the old process would satisfy the check below.
+                    SetStatus("API running without relay — starting RASD Relay (restarts Node.js)...");
+                    await WaitForApiDownAsync(timeoutSec: 15);
+                }
 
                 bool apiOk = await WaitForHttpAsync(API_HEALTH, timeoutSec: 90,
                     onTick: pct => SetProgress(5 + (int)(pct * 27)));
@@ -161,8 +174,38 @@ namespace RASD_Launcher
         }
 
         // ================================================================
+        // IS RASD_RELAY.EXE ALREADY RUNNING?
+        // ================================================================
+        private static bool IsRelayRunning()
+        {
+            try
+            {
+                Process[] procs = Process.GetProcessesByName("RASD_Relay");
+                bool running = procs.Length > 0;
+                foreach (var p in procs) p.Dispose();
+                return running;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // ================================================================
         // POLLING HELPERS
         // ================================================================
+
+        /// <summary>Waits until the local API stops answering, or the timeout expires.</summary>
+        private static async Task WaitForApiDownAsync(int timeoutSec)
+        {
+            var deadline = DateTime.Now.AddSeconds(timeoutSec);
+            while (DateTime.Now < deadline)
+            {
+                if (!await Task.Run(() => IsApiAlreadyRunning())) return;
+                await Task.Delay(1000);
+            }
+        }
+
         private static async Task<bool> WaitForHttpAsync(
             string url, int timeoutSec, Action<double> onTick)
         {
