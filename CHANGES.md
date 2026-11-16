@@ -112,7 +112,8 @@ the artwork's gold (`#EEB059`) on its dark green (`#031E19`), same full-bleed sq
   - `RASD_Shell/MainWindow.xaml` title bar, 20 px, radius 6 → small "R" (`RASD_Shell.csproj` resource).
   - `Admin_Watcher/SplashWindow.xaml` relay splash, 60 px circle (radius 30) → artwork.
   - `RASD_Launcher/LoadingWindow.xaml` and `RASD_Setup/MainWindow.xaml` shield → 44×44, radius 10, artwork.
-  - `Admin_Watcher.csproj`, `RASD_Launcher.csproj`, `RASD_Setup.csproj` gained the `rasd-logo.png` resource.
+  - `Admin_Watcher.csproj` and `RASD_Launcher.csproj` gained the `rasd-logo.png` resource. (`RASD_Setup.csproj` was
+  missed here; that caused the installer crash fixed at the end of this file.)
 - React marks: `Sidebar.jsx` (32 px) and `LandingPage.jsx` (30 px) → `/rasd-logo-small.png`;
   `LoginPage.jsx` (44 px) → `/rasd-logo-192.png`. Container styles unchanged.
 - `Web_Client/index.html` — favicon and apple-touch-icon links (title unchanged).
@@ -226,5 +227,22 @@ uninstaller banner, and the Apps & Features support URL. The Apps & Features **P
 **Build.** `RASD_Launcher`, `RASD_Uninstaller`, the payload and `RASD_Setup` were rebuilt with 0 errors and 0
 warnings. New installer: `..\RASD_Setup.exe`; the previous one is `..\RASD_Setup_prev.exe`.
 
-**Rollback.** `git checkout pre-redesign` (or `git revert 4727bb4` / `git revert e2fef0f` for one item), then rebuild;
-or restore `..\RASD_Setup_prev.exe` as `..\RASD_Setup.exe`.
+**Rollback.** `git checkout pre-redesign` (or `git revert 4727bb4` / `git revert e2fef0f` for one item), then rebuild.
+Do **not** restore `..\RASD_Setup_prev.exe`: it has the installer crash described below.
+
+---
+
+# Fix: installer crashed on start (2026-11-16)
+
+**Symptom.** `RASD_Setup.exe` closed immediately; Event Viewer showed Application Error 1000 (KERNELBASE.dll,
+exception `0xe0434352`) and .NET Runtime 1026 with `System.IO.IOException`.
+
+**Cause.** change5 put the logo on the installer's sign-in panel (`RASD_Setup/MainWindow.xaml`,
+`pack://application:,,,/rasd-logo.png`) but `RASD_Setup.csproj` never received the matching `Resource` entry
+(the change5 notes above wrongly said it did). WPF threw "Cannot locate resource 'rasd-logo.png'" while loading the
+window. Every installer built since change5 had this bug, including `..\RASD_Setup_prev.exe`.
+
+**Fix.** Added `<Resource Include="..\Assets\rasd-logo.png">` to `RASD_Setup.csproj` and rebuilt the installer
+(0 errors, 0 warnings). Verified by resolving each window's logo URI inside its own exe: `RASD_Setup.exe`, `RASD.exe`,
+`RASD_Relay.exe` (`rasd-logo.png`, 512×512) and `RASD_Shell.exe` (`rasd-logo-small.png`, 256×256) all resolve; the
+crashing build reproduces the exact error. `..\RASD_Setup.exe` has been replaced with the fixed build.
