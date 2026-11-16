@@ -24,7 +24,7 @@ The API itself is healthy: started on its own on the Admin laptop it connects to
 
 "Never disconnect" cannot be guaranteed on any network (a cable can be pulled, a laptop can sleep). What this
 guide does is remove every avoidable cause, and RASD reconnects by itself within seconds when something does
-drop (see section 6.4 for the exact timings).
+drop (see section 6.3 for the exact timings).
 
 ---
 
