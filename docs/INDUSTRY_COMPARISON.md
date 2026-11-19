@@ -42,7 +42,7 @@ specific gaps (rows 5, 6, 8, 10, 11). Rows 6, 8 and 11 directly affect whether t
 
 ### A. Updates that make the demo reliable (small, low-risk) — implemented
 
-Status: **done** in commits `676a9a2` (A1, A4), `dccca06` (A2) and `d37d400` (A3); see `CHANGES.md`.
+Status: **done** in commits `77b737d` (A1, A4), `04116c6` (A2) and `a419ccf` (A3); see `CHANGES.md`.
 
 | ID | Update | Pattern adopted | Fixes | Files |
 |---|---|---|---|---|
