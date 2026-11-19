@@ -27,3 +27,16 @@ bifrost-model-router/
 # Build outputs that contain secrets (.env, node.key)
 RASD_Setup/Payload.zip
 RASD_Staging/
+
+# AI tooling and private analysis (kept locally, never pushed)
+AGENTS.md
+.codex/
+graphify.cmd
+INSTALL_GRAPHIFY.ps1
+.graphifyignore
+PROJECT_MAP.md
+CLAUDE.md
+.claude/
+
+# Old release build (contains embedded secrets)
+RASD_FINAL_RELEASE/
