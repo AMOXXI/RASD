@@ -1,13 +1,13 @@
 # RASD — Demo fixes (2026-11-16)
 
-Baseline commit: **`33a73f2` "baseline before demo fixes"**. Every change below is its own commit on top of it.
+Baseline commit: **`1a696ba` "baseline before demo fixes"**. Every change below is its own commit on top of it.
 
 | Commit | Item |
 |---|---|
-| `946efd6` | fix1 — Restart/Shutdown reboot loop and double execution |
-| `5f864ac` | fix2 — Launcher starts the relay when Node is already running |
-| `8ebbc6f` | fix3 — File monitoring works under the Windows service (+ Renamed event) |
-| `c4e451e`, `d586445` | change5 — New logo everywhere (5b: small solid "R" for small sizes) |
+| `d06cd76` | fix1 — Restart/Shutdown reboot loop and double execution |
+| `2655d4f` | fix2 — Launcher starts the relay when Node is already running |
+| `396ddfe` | fix3 — File monitoring works under the Windows service (+ Renamed event) |
+| `387b0a5`, `be6df7f` | change5 — New logo everywhere (5b: small solid "R" for small sizes) |
 | — | item 4 — Service recovery: verified, **no change** |
 
 Build: VS 2022 Build Tools (MSBuild 17.14) + .NET Framework 4.8 / 4.8.1 targeting packs, README build order,
@@ -174,9 +174,9 @@ window's title bar.
 
 ```
 git log --oneline
-git checkout 33a73f2            # whole tree back to the baseline (detached HEAD)
+git checkout 1a696ba            # whole tree back to the baseline (detached HEAD)
 git checkout master             # return to the fixed version
-git revert <commit>             # undo a single item, e.g. git revert 5f864ac
+git revert <commit>             # undo a single item, e.g. git revert 2655d4f
 ```
 
 Installer rollback: delete `..\RASD_Setup.exe` and rename `..\RASD_Setup_old.exe` back to `RASD_Setup.exe`.
@@ -194,19 +194,19 @@ produce a matching installer.
   the installer's preflight list shows WebView2 as present on the admin laptop.
 - The relay still sends every command to every connected agent (it ignores `nodeId`). Fine with one client;
   matters if the admin laptop also runs the client service.
-- See `PROJECT_MAP.md` for the full analysis (unauthenticated `/api/command/*` routes, shared secrets in the
-  payload, etc.).
+- Other known limitations (unauthenticated agent-facing API routes, shared secrets in the installer, no TLS) are
+  listed in the README's *Security considerations* and in `docs/INDUSTRY_COMPARISON.md` (section 3B).
 
 ---
 
 # Credits removal and dashboard redesign (2026-11-16)
 
-Tag **`pre-redesign`** (`017ab21`) marks the state before these changes.
+Tag **`pre-redesign`** (`35c3a27`) marks the state before these changes.
 
 | Commit | Item |
 |---|---|
-| `e2fef0f` | task1 — remove author credits |
-| `4727bb4` | task2 — Liquid Glass dashboard redesign (presentation only) |
+| `014a143` | task1 — remove author credits |
+| `e5ad61b` | task2 — Liquid Glass dashboard redesign (presentation only) |
 
 **task1.** Removed the "Developer" row from the dashboard Settings → About section, the "Published by" line from the
 uninstaller banner, and the Apps & Features support URL. The Apps & Features **Publisher** is now `RASD`, and
@@ -227,7 +227,7 @@ uninstaller banner, and the Apps & Features support URL. The Apps & Features **P
 **Build.** `RASD_Launcher`, `RASD_Uninstaller`, the payload and `RASD_Setup` were rebuilt with 0 errors and 0
 warnings. New installer: `..\RASD_Setup.exe`; the previous one is `..\RASD_Setup_prev.exe`.
 
-**Rollback.** `git checkout pre-redesign` (or `git revert 4727bb4` / `git revert e2fef0f` for one item), then rebuild.
+**Rollback.** `git checkout pre-redesign` (or `git revert e5ad61b` / `git revert 014a143` for one item), then rebuild.
 Do **not** restore `..\RASD_Setup_prev.exe`: it has the installer crash described below.
 
 ---
@@ -255,10 +255,10 @@ Adopted from production systems; see `docs/INDUSTRY_COMPARISON.md` for the compa
 
 | Commit | Item | Change | Files |
 |---|---|---|---|
-| `70cbf0e` | **A1** | The relay forwards every command to every connected agent, so the agent now runs only commands whose `nodeId` is its own (other nodes' commands are logged as ignored; commands that arrive before the agent has registered are left for the queued path) | `Client_Connector/RASD_Connector/NetworkClient.cs` |
-| `70cbf0e` | **A4** | Agent and relay keep an unfinished line between TCP reads (with a stateful UTF-8 decoder), so a message split across two reads is no longer lost; an unfinished line is capped at 65,536 characters | `NetworkClient.cs`, `Admin_Watcher/RelayEngine.cs` |
-| `a485d04` | **A2** | Only one relay can run (named mutex `Global\RASD_Relay_SingleInstance`; a second copy shows "RASD Relay is already running" and exits). The launcher never starts a relay while one is running; if the API is down it waits for the running relay and tells you to press RESTART API | `Admin_Watcher/App.xaml.cs`, `RASD_Launcher/LoadingWindow.xaml.cs` |
-| `91b443d` | **A3** | When (re)starting the API, the relay stops only `node.exe` processes whose command line contains RASD's `API_Server\server.js` (looked up through WMI), instead of every Node process | `Admin_Watcher/NetworkManager.cs` |
+| `676a9a2` | **A1** | The relay forwards every command to every connected agent, so the agent now runs only commands whose `nodeId` is its own (other nodes' commands are logged as ignored; commands that arrive before the agent has registered are left for the queued path) | `Client_Connector/RASD_Connector/NetworkClient.cs` |
+| `676a9a2` | **A4** | Agent and relay keep an unfinished line between TCP reads (with a stateful UTF-8 decoder), so a message split across two reads is no longer lost; an unfinished line is capped at 65,536 characters | `NetworkClient.cs`, `Admin_Watcher/RelayEngine.cs` |
+| `dccca06` | **A2** | Only one relay can run (named mutex `Global\RASD_Relay_SingleInstance`; a second copy shows "RASD Relay is already running" and exits). The launcher never starts a relay while one is running; if the API is down it waits for the running relay and tells you to press RESTART API | `Admin_Watcher/App.xaml.cs`, `RASD_Launcher/LoadingWindow.xaml.cs` |
+| `d37d400` | **A3** | When (re)starting the API, the relay stops only `node.exe` processes whose command line contains RASD's `API_Server\server.js` (looked up through WMI), instead of every Node process | `Admin_Watcher/NetworkManager.cs` |
 
 **Verified.** All projects built with 0 errors; the only warnings are the two that already existed. A1 was tested
 against the built agent (a no-op command type): a command for another node was ignored, a command before
@@ -277,4 +277,4 @@ but not run (they need the elevated relay and a wired agent) — they are covere
 **Important:** this installer build contains a new discovery key. Install **both** laptops from this same
 `..\RASD_Setup.exe`.
 
-**Rollback.** `git revert 91b443d a485d04 70cbf0e`, then rebuild.
+**Rollback.** `git revert d37d400 dccca06 676a9a2`, then rebuild.
