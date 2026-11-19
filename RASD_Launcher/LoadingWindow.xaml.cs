@@ -33,7 +33,9 @@ namespace RASD_Launcher
             bool apiAlreadyRunning = await Task.Run(() => IsApiAlreadyRunning());
             // Node can outlive the relay. A healthy API without RASD_Relay means
             // commands would never reach agents, so only skip when both are up.
-            bool relayRunning = apiAlreadyRunning && IsRelayRunning();
+            // A relay that is already running is never started a second time: two
+            // relays stop each other's Node.js API.
+            bool relayRunning = IsRelayRunning();
             if (apiAlreadyRunning && relayRunning)
             {
                 SetStatus("API already running — skipping relay launch");
@@ -44,10 +46,12 @@ namespace RASD_Launcher
             else
             {
                 // Fire RASD_Relay.exe first — it will start Node.js internally
-                LaunchRelayProcess();
+                if (!relayRunning) LaunchRelayProcess();
 
                 SetStepActive(1, "Starting...");
-                SetStatus("Starting RASD Connector (Node.js API)...");
+                SetStatus(relayRunning
+                    ? "RASD Relay is already running — waiting for its Node.js API..."
+                    : "Starting RASD Connector (Node.js API)...");
                 SetProgress(5);
 
                 if (apiAlreadyRunning)
@@ -66,9 +70,11 @@ namespace RASD_Launcher
                 if (!apiOk)
                 {
                     SetStepFailed(1, "Timeout");
-                    ShowRetry(
-                        "RASD Connector did not start within 90 seconds.\n" +
-                        "Check that Node.js is installed and RASD_Relay.exe is present.");
+                    ShowRetry(relayRunning
+                        ? "The Node.js API did not answer within 90 seconds.\n" +
+                          "Open RASD Relay from the system tray and press RESTART API, then Retry."
+                        : "RASD Connector did not start within 90 seconds.\n" +
+                          "Check that Node.js is installed and RASD_Relay.exe is present.");
                     return;
                 }
 
