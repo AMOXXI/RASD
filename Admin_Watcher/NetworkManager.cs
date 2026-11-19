@@ -400,20 +400,46 @@ namespace RASD_AdminWatcher
 
         private void KillOrphanedNode()
         {
+            // Stop only node.exe processes running RASD's own server.js (an API left
+            // behind by an earlier relay). Other Node.js applications are not touched.
+            string serverPath = Path.Combine(ROOT_DIR, API_DIR, NODE_ENTRY);
             try
             {
-                foreach (var p in Process.GetProcessesByName("node"))
+                using (var searcher = new System.Management.ManagementObjectSearcher(
+                    "SELECT ProcessId, CommandLine FROM Win32_Process WHERE Name = 'node.exe'"))
+                using (var results = searcher.Get())
                 {
-                    try
+                    foreach (System.Management.ManagementObject mo in results)
                     {
-                        // Only kill if cmdline references our server.js
-                        p.Kill();
-                        p.Dispose();
+                        using (mo)
+                        {
+                            string cmdLine = mo["CommandLine"] as string;
+                            if (string.IsNullOrEmpty(cmdLine) ||
+                                cmdLine.IndexOf(serverPath, StringComparison.OrdinalIgnoreCase) < 0)
+                                continue;
+
+                            int pid = Convert.ToInt32(mo["ProcessId"]);
+                            try
+                            {
+                                using (var p = Process.GetProcessById(pid))
+                                {
+                                    p.Kill();
+                                    p.WaitForExit(3000);
+                                }
+                                _log(string.Format("WARN: Stopped leftover RASD API process (PID {0}).", pid));
+                            }
+                            catch (Exception ex)
+                            {
+                                _log(string.Format("WARN: Could not stop leftover RASD API process (PID {0}) — {1}", pid, ex.Message));
+                            }
+                        }
                     }
-                    catch { }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _log("WARN: Could not check for a leftover RASD API process — " + ex.Message);
+            }
         }
 
         // ----------------------------------------------------------------
