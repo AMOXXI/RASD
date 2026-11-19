@@ -40,7 +40,9 @@ specific gaps (rows 5, 6, 8, 10, 11). Rows 6, 8 and 11 directly affect whether t
 
 ## 3. Recommended updates
 
-### A. Updates that make the demo reliable (small, low-risk)
+### A. Updates that make the demo reliable (small, low-risk) — implemented
+
+Status: **done** in commits `70cbf0e` (A1, A4), `a485d04` (A2) and `91b443d` (A3); see `CHANGES.md`.
 
 | ID | Update | Pattern adopted | Fixes | Files |
 |---|---|---|---|---|

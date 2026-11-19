@@ -19,7 +19,7 @@ The API itself is healthy: started on its own on the Admin laptop it connects to
 |---|---|---|---|
 | 1 | **No wired Ethernet adapter** — only Wi-Fi is connected | RASD refuses Wi-Fi by design; the relay logs `no wired Ethernet adapter is up` and agents can never connect | 2, 4 |
 | 2 | **A VPN (ZoogVPN) is connected** | VPN tunnels can capture LAN traffic and drop sockets; RASD refuses VPN adapters | 4.2 |
-| 3 | **Two relay windows were running at once** (`port 3001 already in use` in the relay log) | When a relay starts or restarts the API it stops **every** `node.exe`, so two relays keep killing each other's API → timeouts | 7.1 |
+| 3 | **Two relay windows were running at once** (`port 3001 already in use` in the relay log) | When a relay starts or restarts the API it stops **every** `node.exe`, so two relays keep killing each other's API → timeouts. **Fixed in the current installer:** a second relay now refuses to start, and the relay stops only RASD's own API process | 7.1 |
 | 4 | **The Endpoint role was installed on the Admin laptop** (it failed half-way) | The two roles must never share a laptop | 1, 8 |
 
 "Never disconnect" cannot be guaranteed on any network (a cable can be pulled, a laptop can sleep). What this
@@ -317,7 +317,8 @@ curl.exe -s http://192.168.50.10:3000/api/health
    ```powershell
    (Get-Process RASD_Relay -ErrorAction SilentlyContinue).Count
    ```
-   The answer must be `1`. If it is `2` or more, close all of them and start once:
+   The answer must be `1`. The current installer enforces this (a second relay shows "RASD Relay is already
+   running" and exits). With an older installer, if it is `2` or more, close all of them and start once:
    ```powershell
    Get-Process RASD_Relay, RASD -ErrorAction SilentlyContinue | Stop-Process -Force
    Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force

@@ -246,3 +246,35 @@ window. Every installer built since change5 had this bug, including `..\RASD_Set
 (0 errors, 0 warnings). Verified by resolving each window's logo URI inside its own exe: `RASD_Setup.exe`, `RASD.exe`,
 `RASD_Relay.exe` (`rasd-logo.png`, 512×512) and `RASD_Shell.exe` (`rasd-logo-small.png`, 256×256) all resolve; the
 crashing build reproduces the exact error. `..\RASD_Setup.exe` has been replaced with the fixed build.
+
+---
+
+# Reliability updates A1–A4 (2026-11-19)
+
+Adopted from production systems; see `docs/INDUSTRY_COMPARISON.md` for the comparison and sources.
+
+| Commit | Item | Change | Files |
+|---|---|---|---|
+| `70cbf0e` | **A1** | The relay forwards every command to every connected agent, so the agent now runs only commands whose `nodeId` is its own (other nodes' commands are logged as ignored; commands that arrive before the agent has registered are left for the queued path) | `Client_Connector/RASD_Connector/NetworkClient.cs` |
+| `70cbf0e` | **A4** | Agent and relay keep an unfinished line between TCP reads (with a stateful UTF-8 decoder), so a message split across two reads is no longer lost; an unfinished line is capped at 65,536 characters | `NetworkClient.cs`, `Admin_Watcher/RelayEngine.cs` |
+| `a485d04` | **A2** | Only one relay can run (named mutex `Global\RASD_Relay_SingleInstance`; a second copy shows "RASD Relay is already running" and exits). The launcher never starts a relay while one is running; if the API is down it waits for the running relay and tells you to press RESTART API | `Admin_Watcher/App.xaml.cs`, `RASD_Launcher/LoadingWindow.xaml.cs` |
+| `91b443d` | **A3** | When (re)starting the API, the relay stops only `node.exe` processes whose command line contains RASD's `API_Server\server.js` (looked up through WMI), instead of every Node process | `Admin_Watcher/NetworkManager.cs` |
+
+**Verified.** All projects built with 0 errors; the only warnings are the two that already existed. A1 was tested
+against the built agent (a no-op command type): a command for another node was ignored, a command before
+registration was deferred, commands for its own node or with no target ran. A3: WMI returns full Node command lines
+and an unrelated Node process is not matched. The installer's logo resource still resolves. A2 and A4 were reviewed
+but not run (they need the elevated relay and a wired agent) — they are covered by the two-laptop tests below.
+
+**Test on the laptops.**
+- A1 — with the Endpoint connected, send Restart to the Endpoint only: only that laptop restarts. Its
+  `connector.log` shows `COMMAND received: RESTART`.
+- A2 — start `RASD.exe` twice, or open `RASD_Relay.exe` while the relay runs: the second copy says it is already
+  running; `(Get-Process RASD_Relay).Count` stays `1`; the relay log has no `port 3001 … only one usage` error.
+- A3 — run any other Node.js program on the Admin, press RESTART API: the other program keeps running.
+- A4 — normal operation: every command sent shows in `connector.log` and gets DELIVERED.
+
+**Important:** this installer build contains a new discovery key. Install **both** laptops from this same
+`..\RASD_Setup.exe`.
+
+**Rollback.** `git revert 91b443d a485d04 70cbf0e`, then rebuild.
