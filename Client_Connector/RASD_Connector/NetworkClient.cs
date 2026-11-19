@@ -37,6 +37,9 @@ namespace RASD_Connector
         private const int    EXECUTED_MAX    = 200;
         private const int    PRE_SHUTDOWN_ACK_TIMEOUT_MS = 5000;
 
+        // Upper bound for an unfinished incoming line (protects against a peer that never sends '\n')
+        private const int    MAX_PENDING_CHARS = 65536;
+
         // Phase 2 — LAN auto-discovery (wire tags/format live in DiscoverySecurity)
         private const int    PROBE_WAIT_MS   = 2500;   // wait for an admin reply
         private const int    REDISCOVER_AFTER_FAILURES = 2;  // consecutive fails -> re-discover
@@ -717,13 +720,36 @@ namespace RASD_Connector
                     catch { }
                     var buffer = new byte[8192];
 
+                    // TCP is a byte stream: one read can hold several lines or only part
+                    // of one. Keep the unfinished tail until its newline arrives, and use a
+                    // stateful decoder so a UTF-8 character split across reads survives.
+                    var decoder = Encoding.UTF8.GetDecoder();
+                    var chars   = new char[Encoding.UTF8.GetMaxCharCount(buffer.Length)];
+                    var pending = new StringBuilder();
+
                     while (!connCts.IsCancellationRequested)
                     {
                         int read = await stream.ReadAsync(buffer, 0, buffer.Length, connCts.Token)
                                                .ConfigureAwait(false);
                         if (read == 0) { reason = "server closed connection"; break; }
 
-                        ProcessIncomingMessage(Encoding.UTF8.GetString(buffer, 0, read));
+                        int charCount = decoder.GetChars(buffer, 0, read, chars, 0);
+                        pending.Append(chars, 0, charCount);
+
+                        string text = pending.ToString();
+                        int lastNewline = text.LastIndexOf('\n');
+                        if (lastNewline >= 0)
+                        {
+                            ProcessIncomingMessage(text.Substring(0, lastNewline + 1));
+                            pending.Clear();
+                            pending.Append(text, lastNewline + 1, text.Length - lastNewline - 1);
+                        }
+
+                        if (pending.Length > MAX_PENDING_CHARS)
+                        {
+                            Log("[NET] Incoming line exceeded " + MAX_PENDING_CHARS + " characters without a newline — discarded.");
+                            pending.Clear();
+                        }
                     }
 
                     if (reason == "unknown") reason = "receive loop ended";
@@ -961,6 +987,27 @@ namespace RASD_Connector
                 string commandType = parts[1].Trim();
                 string json        = parts.Length > 2 ? parts[2] : "";
                 string cmdId       = ExtractJsonString(json, "cmdId");
+                string targetNode  = ExtractJsonString(json, "nodeId");
+
+                // Targeting: the relay forwards every command to every connected agent,
+                // so each agent runs only the commands addressed to its own node id
+                // (the same rule Salt minions apply to published jobs).
+                if (!string.IsNullOrEmpty(targetNode))
+                {
+                    string myNodeId = _nodeId;
+                    if (string.IsNullOrEmpty(myNodeId))
+                    {
+                        Log(string.Format("[NET] COMMAND {0} (cmdId {1}) arrived before this endpoint registered — " +
+                            "left for queued delivery.", commandType, cmdId));
+                        continue;
+                    }
+                    if (!string.Equals(targetNode, myNodeId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log(string.Format("[NET] COMMAND {0} (cmdId {1}) is for node {2}, not this endpoint — ignored.",
+                            commandType, cmdId, targetNode));
+                        continue;
+                    }
+                }
 
                 Log(string.Format("[NET] COMMAND received: {0}{1}", commandType,
                     string.IsNullOrEmpty(cmdId) ? "" : " (cmdId " + cmdId + ")"));

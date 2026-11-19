@@ -36,6 +36,7 @@ namespace RASD_AdminWatcher
         private const int    RECONNECT_MIN_MS  = 1000;    // 1s, doubling
         private const int    RECONNECT_MAX_MS  = 30000;   // capped at 30s
         private const int    AGENT_IO_TIMEOUT_MS = 30000; // agent socket read/write timeout
+        private const int    MAX_PENDING_CHARS   = 65536; // max unfinished line from an agent
 
         // ----------------------------------------------------------------
         // STATE
@@ -399,6 +400,12 @@ namespace RASD_AdminWatcher
             var buffer = new byte[4096];
             byte[] pong = Encoding.UTF8.GetBytes("PONG\n");
 
+            // TCP is a byte stream: keep an unfinished line until its newline arrives,
+            // and decode UTF-8 statefully so a character split across reads survives.
+            var decoder = Encoding.UTF8.GetDecoder();
+            var chars   = new char[Encoding.UTF8.GetMaxCharCount(buffer.Length)];
+            var pending = new StringBuilder();
+
             try
             {
                 var stream = client.GetStream();
@@ -407,7 +414,23 @@ namespace RASD_AdminWatcher
                     int read = await stream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
                     if (read == 0) break; // Client disconnected
 
-                    string chunk = Encoding.UTF8.GetString(buffer, 0, read);
+                    pending.Append(chars, 0, decoder.GetChars(buffer, 0, read, chars, 0));
+                    string text = pending.ToString();
+                    int lastNewline = text.LastIndexOf('\n');
+                    if (lastNewline < 0)
+                    {
+                        if (pending.Length > MAX_PENDING_CHARS)
+                        {
+                            _log(string.Format("WARN: [TCP] Agent {0} sent {1}+ characters without a newline — discarded.",
+                                remoteIp, MAX_PENDING_CHARS));
+                            pending.Clear();
+                        }
+                        continue;
+                    }
+                    string chunk = text.Substring(0, lastNewline + 1);
+                    pending.Clear();
+                    pending.Append(text, lastNewline + 1, text.Length - lastNewline - 1);
+
                     foreach (var rawLine in chunk.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
                     {
                         string line = rawLine.Trim();
