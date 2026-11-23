@@ -105,8 +105,12 @@ export default function SettingsPage() {
         <Row label="Platform"     value="RASD Operations Ecosystem"/>
         <Row label="Version"      value="2.0.0" mono/>
         <Row label="University"   value="Ar-Rasheed Smart University, Sana'a"/>
-        <Row label="Department"   value="Cybersecurity — 4th Year"/>
         <Row label="Project Type" value="Graduation Project 2026"/>
+        <Row label="Team"         value="Senior Graduation Project Team"/>
+        <Row label="Member"       value="Amir Muneer Ali Al-Dubai"/>
+        <Row label="Member"       value="Abdullah Wail Abdullah Hashem"/>
+        <Row label="Member"       value="Ali Abdulaziz Mahmoud Hammad"/>
+        <Row label="Member"       value="Hashem Mohammed Mohammed Al-Kebsi"/>
         <div style={{marginTop:16,padding:'12px 16px',background:'var(--c-accent-bg)',border:'1px solid color-mix(in srgb,var(--accent) 28%,transparent)',borderRadius:12}}>
           <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
             <Shield size={16} style={{color:'var(--c-accent)',flexShrink:0,marginTop:1}}/>
